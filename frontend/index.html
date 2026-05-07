@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MediMind — AI Medical Triage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Cabinet+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+<!-- Separated CSS files -->
+<link rel="stylesheet" href="css/base.css"/>
+<link rel="stylesheet" href="css/layout.css"/>
+<link rel="stylesheet" href="css/home.css"/>
+<link rel="stylesheet" href="css/triage.css"/>
+<link rel="stylesheet" href="css/history.css"/>
+</head>
+<body>
+
+<div id="app">
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav>
+  <div class="logo" onclick="showPage('home')">
+    <div class="logo-mark">
+      <svg viewBox="0 0 20 20" fill="none">
+        <path d="M10 2L10 18M2 10L18 10" stroke="#00b896" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="10" cy="10" r="3" fill="white"/>
+      </svg>
+    </div>
+    Medi<em>Mind</em>
+  </div>
+
+  <div class="nav-center">
+    <button class="nav-link active" id="nav-home"    onclick="showPage('home',this)">Home</button>
+    <button class="nav-link"        id="nav-triage"  onclick="showPage('triage',this)">Symptom Check</button>
+    <button class="nav-link"        id="nav-history" onclick="showPage('history',this)">My History</button>
+  </div>
+
+  <div class="nav-right" id="nav-right">
+    <button class="btn-outline" onclick="openModal('login')">Sign In</button>
+    <button class="btn-solid"   onclick="openModal('register')">Get Started</button>
+  </div>
+</nav>
+
+
+<!-- ══════════════ HOME PAGE ══════════════ -->
+<div id="page-home" class="page active">
+
+  <div class="hero-wrap">
+    <!-- Left content -->
+    <div class="hero-left">
+      <div class="hero-eyebrow">
+        <span class="hero-eyebrow-dot"></span>
+        AI-Powered Medical Triage
+      </div>
+      <h1 class="hero-h1">
+        Every symptom<br/>
+        <em>deserves clarity.</em>
+      </h1>
+      <p class="hero-sub">
+        Describe how you feel in plain English. MediMind's multi-stage AI pipeline extracts, analyzes, and triages your symptoms using a verified medical knowledge base — then finds the nearest hospital if needed.
+      </p>
+      <div class="hero-ctas">
+        <button class="cta-primary" onclick="showPage('triage')">Check My Symptoms →</button>
+        <button class="cta-sec"     onclick="openModal('register')">Create Free Account</button>
+      </div>
+      <div class="hero-trust">
+        <div class="trust-item">
+          <div class="trust-num">3-Stage</div>
+          <div class="trust-lbl">AI Pipeline</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-num">RAG</div>
+          <div class="trust-lbl">Knowledge Base</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-num">📍 Live</div>
+          <div class="trust-lbl">Hospitals Near You</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-num">PDF</div>
+          <div class="trust-lbl">Doctor Brief</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right dark panel -->
+    <div class="hero-right">
+      <div class="hero-right-bg"></div>
+      <div class="hero-right-grid"></div>
+
+      <div class="mock-card">
+        <div class="mock-badge">● Live Triage Result</div>
+        <div class="mock-title">Emergency Assessment</div>
+        <div class="mock-sub">"Severe headache, fever, stiff neck for 2 days…"</div>
+        <div class="mock-pills">
+          <span class="mock-pill pill-red">🚨 Emergency</span>
+          <span class="mock-pill pill-blue">RAG Enhanced</span>
+          <span class="mock-pill pill-amber">94% Confidence</span>
+        </div>
+      </div>
+
+      <div class="mock-card">
+        <div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:14px">
+          AI Pipeline
+        </div>
+        <div class="mock-flow">
+          <div class="flow-step">
+            <div class="flow-step-num">1</div>
+            <div class="flow-step-text">Symptom Extraction</div>
+            <div class="flow-step-tag">LLM</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">2</div>
+            <div class="flow-step-text">RAG Knowledge Retrieval</div>
+            <div class="flow-step-tag">ChromaDB</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">3</div>
+            <div class="flow-step-text">Triage Classification</div>
+            <div class="flow-step-tag">llama3.2</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">4</div>
+            <div class="flow-step-text">Nearest Hospitals</div>
+            <div class="flow-step-tag">📍 GPS</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features strip -->
+  <div class="features-strip">
+    <div class="feat">
+      <div class="feat-icon feat-icon-teal">🔬</div>
+      <div class="feat-title">3-Stage AI Pipeline</div>
+      <div class="feat-desc">Extract symptoms, retrieve medical knowledge via RAG, then classify triage — all in one optimized AI call</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon feat-icon-blue">📚</div>
+      <div class="feat-title">Verified References</div>
+      <div class="feat-desc">Every result links directly to WHO, NHS, Mayo Clinic, MedlinePlus and other trusted sources</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon feat-icon-amber">📍</div>
+      <div class="feat-title">Hospitals Near You</div>
+      <div class="feat-desc">Live geolocation finds the nearest hospitals and clinics with one-click Google Maps directions</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon feat-icon-purple">💡</div>
+      <div class="feat-title">Health Advice</div>
+      <div class="feat-desc">Personalized symptom-specific home remedies and advice alongside your triage result</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon feat-icon-red">📄</div>
+      <div class="feat-title">PDF Medical Brief</div>
+      <div class="feat-desc">Download a professional brief to share with your doctor at your next appointment</div>
+    </div>
+  </div>
+
+</div><!-- /page-home -->
+
+
+<!-- ══════════════ TRIAGE PAGE ══════════════ -->
+<div id="page-triage" class="page">
+  <div class="triage-layout">
+
+    <!-- Sidebar — symptom form -->
+    <div class="triage-sidebar">
+      <div class="sidebar-heading">Describe your symptoms</div>
+      <div class="sidebar-sub">Be as detailed as possible — duration, location, severity all help</div>
+
+      <div class="disclaimer-box">
+        <span>⚠️</span>
+        <span><strong>Not for emergencies.</strong> If life-threatening, call <strong>1122</strong> or <strong>115</strong> immediately.</span>
+      </div>
+
+      <!-- Main symptom input -->
+      <div class="field-group">
+        <div class="field-label">What are you experiencing? <span class="req">*</span></div>
+        <textarea class="symptom-ta" id="symptom-input"
+          placeholder="e.g., I have had a severe headache for 2 days, along with high fever and stiff neck. I also feel sensitive to light and nauseous…"></textarea>
+        <div class="chips" id="quick-chips">
+          <span class="chip" onclick="addChip(this,'Headache')">Headache</span>
+          <span class="chip" onclick="addChip(this,'Fever')">Fever</span>
+          <span class="chip" onclick="addChip(this,'Chest pain')">Chest pain</span>
+          <span class="chip" onclick="addChip(this,'Shortness of breath')">Shortness of breath</span>
+          <span class="chip" onclick="addChip(this,'Nausea')">Nausea</span>
+          <span class="chip" onclick="addChip(this,'Fatigue')">Fatigue</span>
+          <span class="chip" onclick="addChip(this,'Dizziness')">Dizziness</span>
+          <span class="chip" onclick="addChip(this,'Abdominal pain')">Abdominal pain</span>
+          <span class="chip" onclick="addChip(this,'Cough')">Cough</span>
+          <span class="chip" onclick="addChip(this,'Sore throat')">Sore throat</span>
+          <span class="chip" onclick="addChip(this,'Back pain')">Back pain</span>
+          <span class="chip" onclick="addChip(this,'Joint pain')">Joint pain</span>
+        </div>
+      </div>
+
+      <div class="sidebar-divider">Patient Details</div>
+
+      <div class="grid-2">
+        <div>
+          <div class="field-label">Age</div>
+          <input type="number" id="input-age" placeholder="e.g. 28" min="0" max="120"/>
+        </div>
+        <div>
+          <div class="field-label">Gender</div>
+          <select id="input-gender">
+            <option value="">Not specified</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Symptom Duration</div>
+        <select id="input-duration">
+          <option value="">Select duration</option>
+          <option value="less than 24 hours">Less than 24 hours</option>
+          <option value="1-2 days">1–2 days</option>
+          <option value="3-5 days">3–5 days</option>
+          <option value="1-2 weeks">1–2 weeks</option>
+          <option value="more than 2 weeks">More than 2 weeks</option>
+          <option value="chronic / ongoing">Chronic / Ongoing</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Body Area / Location</div>
+        <select id="input-location">
+          <option value="">Select location</option>
+          <option value="head">Head</option>
+          <option value="chest">Chest</option>
+          <option value="abdomen">Abdomen / Stomach</option>
+          <option value="back">Back</option>
+          <option value="throat / neck">Throat / Neck</option>
+          <option value="arms / hands">Arms / Hands</option>
+          <option value="legs / feet">Legs / Feet</option>
+          <option value="skin">Skin / Surface</option>
+          <option value="whole body">Whole Body / General</option>
+          <option value="multiple areas">Multiple Areas</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Existing Conditions <span style="font-size:10px;letter-spacing:0;text-transform:none;color:var(--text3)">(optional)</span></div>
+        <input type="text" id="input-conditions" placeholder="e.g., Diabetes, Hypertension"/>
+      </div>
+
+      <button class="analyze-btn" id="analyze-btn" onclick="runTriage()">
+        <span class="btn-txt">🔬 &nbsp;Analyze Symptoms</span>
+        <span class="btn-load">
+          <span class="spinner"></span>
+          Analyzing with AI…
+        </span>
+      </button>
+    </div>
+
+    <!-- Main result area -->
+    <div class="triage-main" id="triage-main">
+      <div class="tm-empty" id="triage-empty">
+        <div class="empty-art">🩺</div>
+        <div class="empty-title">Ready to assess</div>
+        <div class="empty-sub">Fill in your symptoms on the left panel and click Analyze. The AI will triage your case and provide evidence-based guidance, advice, and nearby hospitals.</div>
+      </div>
+      <div id="result-wrap" style="display:none"></div>
+    </div>
+  </div>
+</div><!-- /page-triage -->
+
+
+<!-- ══════════════ HISTORY PAGE ══════════════ -->
+<div id="page-history" class="page">
+  <div class="history-wrap">
+    <div class="page-header">
+      <div class="page-h1">Triage History</div>
+      <div class="page-h1-sub">Your past symptom assessments and AI reports</div>
+    </div>
+    <div id="history-content"></div>
+  </div>
+</div><!-- /page-history -->
+
+</div><!-- /#app -->
+
+
+<!-- ══════════════ AUTH MODAL ══════════════ -->
+<div class="overlay" id="auth-modal" onclick="overlayClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════ TOAST ══════════════ -->
+<div id="toast" class="toast hidden">
+  <span class="toast-dot"></span>
+  <span id="toast-msg"></span>
+</div>
+
+<!-- Separated JS files — app.js must come first -->
+<script src="js/app.js"></script>
+<script src="js/triage.js"></script>
+
+</body>
+</html>
