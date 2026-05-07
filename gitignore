@@ -1,0 +1,50 @@
+# MediMind .gitignore
+
+# ── Python ────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ── Virtual Environment ───────────────────────
+venv/
+env/
+.venv/
+ENV/
+
+# ── Environment / Secrets ─────────────────────
+# IMPORTANT: never commit your API keys
+.env
+!.env.example
+
+# ── Database ──────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── ChromaDB Vector Store ─────────────────────
+# These are large and get rebuilt automatically on startup
+data/chroma_db/
+
+# ── IDE ───────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Logs ──────────────────────────────────────
+*.log
+logs/
+
+# ── Generated PDFs ────────────────────────────
+*.pdf
+
+# ── Node (if ever added) ──────────────────────
+node_modules/
