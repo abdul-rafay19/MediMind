@@ -1,0 +1,203 @@
+/* ═══════════════════════════════════════
+   MediMind — Main Stylesheet
+   File: css/main.css
+═══════════════════════════════════════ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --ink:#0a0e14;
+  --ink2:#141b24;
+  --ink3:#1e2a38;
+  --mist:#f0f4f8;
+  --mist2:#e2eaf2;
+  --text:#0a0e14;
+  --text2:#3d5166;
+  --text3:#7a9ab5;
+  --wire:#c8d8e8;
+  --wire2:#dde8f0;
+  --teal:#00b896;
+  --teal-lt:#e6f9f5;
+  --teal-dk:#007a64;
+  --red:#e63946;
+  --red-lt:#fdecea;
+  --amber:#f4a261;
+  --amber-lt:#fef3e8;
+  --green:#2a9d5c;
+  --green-lt:#e8f7ee;
+  --blue:#2563eb;
+  --blue-lt:#eff6ff;
+  --purple:#7c3aed;
+  --purple-lt:#f5f3ff;
+  --serif:'Instrument Serif',serif;
+  --sans:'Cabinet Grotesk',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --r:10px;
+  --r2:18px;
+  --r3:28px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow:0 4px 16px rgba(0,0,0,.08),0 2px 6px rgba(0,0,0,.05);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.12),0 4px 12px rgba(0,0,0,.06);
+}
+
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  background:var(--mist);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* Paper texture */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:.5;
+}
+
+#app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--wire);border-radius:3px}
+
+/* ── Utils ── */
+.hidden{display:none!important}
+.skel{
+  background:linear-gradient(90deg,var(--mist2) 25%,white 50%,var(--mist2) 75%);
+  background-size:200% 100%;
+  animation:skel 1.4s infinite;border-radius:6px;
+}
+@keyframes skel{0%{background-position:200%}100%{background-position:-200%}}
+
+/* ── Forms ── */
+textarea,input[type=text],input[type=number],
+input[type=email],input[type=password],select{
+  width:100%;
+  background:var(--mist);
+  border:1.5px solid var(--wire2);
+  border-radius:var(--r);
+  padding:11px 14px;
+  font-family:var(--sans);font-size:13px;
+  color:var(--text);
+  transition:all .15s;resize:none;outline:none;line-height:1.6;
+  -webkit-appearance:none;appearance:none;
+}
+textarea:focus,input:focus,select:focus{
+  border-color:var(--ink);background:white;
+  box-shadow:0 0 0 3px rgba(10,14,20,.06);
+}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a9ab5' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  padding-right:36px;cursor:pointer;
+}
+select option{background:white}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 22px;border-radius:var(--r);
+  font-size:13px;font-weight:700;font-family:var(--sans);
+  cursor:pointer;border:none;transition:all .15s;letter-spacing:-.1px;
+}
+.btn-ink{background:var(--ink);color:#fff;box-shadow:var(--shadow-sm)}
+.btn-ink:hover{background:var(--ink3);transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn-outline{background:transparent;border:1.5px solid var(--wire);color:var(--text2)}
+.btn-outline:hover{border-color:var(--ink);color:var(--text)}
+.btn-teal{background:var(--teal);color:white;box-shadow:0 2px 8px rgba(0,184,150,.25)}
+.btn-teal:hover{background:var(--teal-dk);transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+.btn-lg{padding:14px 32px;font-size:14px;border-radius:var(--r2)}
+
+/* ── Chips ── */
+.chip{
+  display:inline-flex;align-items:center;
+  padding:5px 13px;border-radius:20px;
+  font-size:11px;font-weight:700;
+  background:var(--mist2);border:1.5px solid var(--wire2);
+  cursor:pointer;transition:all .12s;color:var(--text2);
+  font-family:var(--sans);
+}
+.chip:hover{border-color:var(--teal);color:var(--teal-dk);background:var(--teal-lt)}
+.chip.on{background:var(--teal-lt);border-color:var(--teal);color:var(--teal-dk)}
+
+/* ── Cards ── */
+.card{
+  background:white;border:1.5px solid var(--wire2);
+  border-radius:var(--r2);padding:22px;
+}
+.card-title{
+  font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--text3);margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.card-title::before{content:'';width:16px;height:2px;background:var(--teal);border-radius:2px;flex-shrink:0}
+
+/* ── Severity badges ── */
+.sev{display:inline-flex;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
+.sev.mild{background:var(--green-lt);color:var(--green)}
+.sev.moderate{background:var(--amber-lt);color:#c47028}
+.sev.severe,.sev.critical{background:var(--red-lt);color:var(--red)}
+
+/* ── Triage badge ── */
+.triage-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+.triage-badge.red{background:var(--red-lt);color:var(--red)}
+.triage-badge.amber{background:var(--amber-lt);color:#c47028}
+.triage-badge.green{background:var(--green-lt);color:var(--green)}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:28px;right:28px;
+  padding:13px 20px;border-radius:14px;
+  background:var(--ink);color:#fff;
+  font-size:13px;font-weight:600;
+  z-index:999;
+  animation:toastIn .3s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:10px;
+  max-width:380px;
+}
+.toast.hidden{display:none!important}
+.toast-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.toast.success .toast-dot{background:var(--teal)}
+.toast.error .toast-dot{background:var(--red)}
+@keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ── Modal ── */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(10,14,20,.5);backdrop-filter:blur(6px);
+  z-index:500;align-items:center;justify-content:center;padding:20px;
+}
+.overlay.open{display:flex}
+.modal{
+  background:white;border:1.5px solid var(--wire2);
+  border-radius:var(--r3);padding:40px;
+  width:100%;max-width:440px;position:relative;
+  box-shadow:var(--shadow-lg);
+  animation:modalIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.92) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-close{
+  position:absolute;top:16px;right:16px;
+  width:32px;height:32px;border-radius:8px;
+  background:var(--mist2);border:1px solid var(--wire2);
+  cursor:pointer;font-size:14px;color:var(--text3);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .12s;
+}
+.modal-close:hover{background:var(--wire2);color:var(--text)}
+.modal-divider{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:11px;color:var(--text3);font-weight:600}
+.modal-divider::before,.modal-divider::after{content:'';flex:1;height:1px;background:var(--wire2)}
+.modal-err{
+  background:var(--red-lt);border:1px solid rgba(230,57,70,.25);
+  border-radius:var(--r);padding:10px 14px;
+  font-size:12.5px;color:var(--red);margin-bottom:14px;
+}
+
+/* ── Page transitions ── */
+.page{display:none;flex:1;flex-direction:column;animation:pgIn .3s cubic-bezier(.4,0,.2,1)}
+.page.active{display:flex}
+@keyframes pgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
