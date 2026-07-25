@@ -12,7 +12,7 @@ async def health_check(request: Request):
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             res = await client.get(
-                f"{settings.OPENROUTER_BASE_URL.rstrip('/v1').rstrip('/')}/models",
+                f"{settings.OPENROUTER_BASE_URL.rstrip('/')}/models",
                 headers={"Authorization": f"Bearer {settings.OPENROUTER_API_KEY}"},
             )
             llm_status = "connected" if res.status_code in (200, 401) else f"error ({res.status_code})"
