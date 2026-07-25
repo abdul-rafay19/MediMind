@@ -1,0 +1,36 @@
+# MediMind Backend Dependencies — Firebase + NVIDIA NIM Edition
+
+# ── Web Framework ──────────────────────────────────────────────
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# ── SQLite (auth only) ─────────────────────────────────────────
+sqlalchemy[asyncio]==2.0.35
+aiosqlite==0.20.0
+
+# ── Firebase (real database) ───────────────────────────────────
+firebase-admin==6.5.0
+
+# ── Validation ────────────────────────────────────────────────
+pydantic==2.9.2
+pydantic-settings==2.5.2
+pydantic[email]==2.9.2
+
+# ── Auth / Security ───────────────────────────────────────────
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-multipart==0.0.9
+
+# ── HTTP Client ────────────────────────────────────────────────
+httpx==0.27.2
+
+# ── RAG Pipeline ──────────────────────────────────────────────
+sentence-transformers==3.1.1
+chromadb==0.5.11
+
+# ── PDF Generation ────────────────────────────────────────────
+fpdf2==2.7.9
+
+# ── Utilities ─────────────────────────────────────────────────
+python-dotenv==1.0.1

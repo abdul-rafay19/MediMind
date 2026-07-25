@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MediMind - AI Medical Triage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Cabinet+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+<!-- Separated CSS files -->
+<link rel="stylesheet" href="css/base.css"/>
+<link rel="stylesheet" href="css/layout.css"/>
+<link rel="stylesheet" href="css/home.css"/>
+<link rel="stylesheet" href="css/triage.css"/>
+<link rel="stylesheet" href="css/history.css"/>
+<link rel="stylesheet" href="css/crud.css"/>
+</head>
+<body>
+
+<div id="app">
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav id="top-nav">
+  <div class="logo" onclick="showPage('home')">
+    <div class="logo-mark">
+      <svg viewBox="0 0 20 20" fill="none">
+        <path d="M10 2L10 18M2 10L18 10" stroke="#00b896" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="10" cy="10" r="3" fill="white"/>
+      </svg>
+    </div>
+    Medi<em>Mind</em>
+  </div>
+
+  <div class="nav-center">
+    <button class="nav-link active" id="nav-home"    onclick="showPage('home',this)">Home</button>
+    <button class="nav-link"        id="nav-triage"  onclick="showPage('triage',this)">Symptom Check</button>
+    <button class="nav-link"        id="nav-history"   onclick="showPage('history',this)">My History</button>
+    <button class="nav-link"        id="nav-dashboard" onclick="showPage('dashboard',this)">My Health</button>
+  </div>
+
+  <div class="nav-right" id="nav-right">
+    <button class="btn-outline" onclick="showPage('login')">Sign In</button>
+    <button class="btn-solid"   onclick="showPage('register')">Get Started</button>
+  </div>
+</nav>
+
+
+<!-- ══════════════ HOME PAGE ══════════════ -->
+<div id="page-home" class="page active">
+
+  <div class="hero-wrap">
+    <!-- Left content -->
+    <div class="hero-left">
+      <div class="hero-eyebrow">
+        <span class="hero-eyebrow-dot"></span>
+        AI-Powered Medical Triage
+      </div>
+      <h1 class="hero-h1">
+        Every symptom<br/>
+        <em>deserves clarity.</em>
+      </h1>
+      <p class="hero-sub">
+        Describe how you feel in plain English. MediMind's multi-stage AI pipeline extracts, analyzes, and triages your symptoms using a verified medical knowledge base — then finds the nearest hospital if needed.
+      </p>
+      <div class="hero-ctas">
+        <button class="cta-primary" onclick="showPage('triage')">Check My Symptoms →</button>
+        <button class="cta-sec"     onclick="showPage('register')">Create Free Account</button>
+      </div>
+      <div class="hero-trust">
+        <div class="trust-item">
+          <div class="trust-num">3-Stage</div>
+          <div class="trust-lbl">AI Pipeline</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-num">RAG</div>
+          <div class="trust-lbl">Knowledge Base</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-num">📍 Live</div>
+          <div class="trust-lbl">Hospitals Near You</div>
+        </div>
+        <div class="trust-item">
+          <div class="trust-num">PDF</div>
+          <div class="trust-lbl">Doctor Brief</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right dark panel -->
+    <div class="hero-right">
+      <div class="hero-right-bg"></div>
+      <div class="hero-right-grid"></div>
+
+      <div class="mock-card">
+        <div class="mock-badge">● Live Triage Result</div>
+        <div class="mock-title">Emergency Assessment</div>
+        <div class="mock-sub">"Severe headache, fever, stiff neck for 2 days…"</div>
+        <div class="mock-pills">
+          <span class="mock-pill pill-red">🚨 Emergency</span>
+          <span class="mock-pill pill-blue">RAG Enhanced</span>
+          <span class="mock-pill pill-amber">94% Confidence</span>
+        </div>
+      </div>
+
+      <div class="mock-card">
+        <div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:14px">
+          AI Pipeline
+        </div>
+        <div class="mock-flow">
+          <div class="flow-step">
+            <div class="flow-step-num">1</div>
+            <div class="flow-step-text">Symptom Extraction</div>
+            <div class="flow-step-tag">LLM</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">2</div>
+            <div class="flow-step-text">RAG Knowledge Retrieval</div>
+            <div class="flow-step-tag">ChromaDB</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">3</div>
+            <div class="flow-step-text">Triage Classification</div>
+            <div class="flow-step-tag">llama3.2</div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-num">4</div>
+            <div class="flow-step-text">Nearest Hospitals</div>
+            <div class="flow-step-tag">📍 GPS</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features strip -->
+  <div class="features-strip">
+    <div class="feat">
+      <div class="feat-icon feat-icon-teal">🔬</div>
+      <div class="feat-title">3-Stage AI Pipeline</div>
+      <div class="feat-desc">Extract symptoms, retrieve medical knowledge via RAG, then classify triage — all in one optimized AI call</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon feat-icon-blue">📚</div>
+      <div class="feat-title">Verified References</div>
+      <div class="feat-desc">Every result links directly to WHO, NHS, Mayo Clinic, MedlinePlus and other trusted sources</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon feat-icon-amber">📍</div>
+      <div class="feat-title">Hospitals Near You</div>
+      <div class="feat-desc">Live geolocation finds the nearest hospitals and clinics with one-click Google Maps directions</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon feat-icon-purple">💡</div>
+      <div class="feat-title">Health Advice</div>
+      <div class="feat-desc">Personalized symptom-specific home remedies and advice alongside your triage result</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon feat-icon-red">📄</div>
+      <div class="feat-title">PDF Medical Brief</div>
+      <div class="feat-desc">Download a professional brief to share with your doctor at your next appointment</div>
+    </div>
+  </div>
+
+</div><!-- /page-home -->
+
+
+<!-- ══════════════ TRIAGE PAGE ══════════════ -->
+<div id="page-triage" class="page">
+  <div class="triage-layout">
+
+    <!-- Sidebar — symptom form -->
+    <div class="triage-sidebar">
+      <div class="sidebar-heading">Describe your symptoms</div>
+      <div class="sidebar-sub">Be as detailed as possible — duration, location, severity all help</div>
+
+      <div class="disclaimer-box">
+        <span>⚠️</span>
+        <span><strong>Not for emergencies.</strong> If life-threatening, call <strong>1122</strong> or <strong>115</strong> immediately.</span>
+      </div>
+
+      <!-- Main symptom input -->
+      <div class="field-group">
+        <div class="field-label">What are you experiencing? <span class="req">*</span></div>
+        <textarea class="symptom-ta" id="symptom-input"
+          placeholder="e.g., I have had a severe headache for 2 days, along with high fever and stiff neck. I also feel sensitive to light and nauseous…"></textarea>
+        <div class="chips" id="quick-chips">
+          <span class="chip" onclick="addChip(this,'Headache')">Headache</span>
+          <span class="chip" onclick="addChip(this,'Fever')">Fever</span>
+          <span class="chip" onclick="addChip(this,'Chest pain')">Chest pain</span>
+          <span class="chip" onclick="addChip(this,'Shortness of breath')">Shortness of breath</span>
+          <span class="chip" onclick="addChip(this,'Nausea')">Nausea</span>
+          <span class="chip" onclick="addChip(this,'Fatigue')">Fatigue</span>
+          <span class="chip" onclick="addChip(this,'Dizziness')">Dizziness</span>
+          <span class="chip" onclick="addChip(this,'Abdominal pain')">Abdominal pain</span>
+          <span class="chip" onclick="addChip(this,'Cough')">Cough</span>
+          <span class="chip" onclick="addChip(this,'Sore throat')">Sore throat</span>
+          <span class="chip" onclick="addChip(this,'Back pain')">Back pain</span>
+          <span class="chip" onclick="addChip(this,'Joint pain')">Joint pain</span>
+        </div>
+      </div>
+
+      <div class="sidebar-divider">Patient Details</div>
+
+      <div class="grid-2">
+        <div>
+          <div class="field-label">Age</div>
+          <input type="number" id="input-age" placeholder="e.g. 28" min="0" max="120"/>
+        </div>
+        <div>
+          <div class="field-label">Gender</div>
+          <select id="input-gender">
+            <option value="">Not specified</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Symptom Duration</div>
+        <select id="input-duration">
+          <option value="">Select duration</option>
+          <option value="less than 24 hours">Less than 24 hours</option>
+          <option value="1-2 days">1–2 days</option>
+          <option value="3-5 days">3–5 days</option>
+          <option value="1-2 weeks">1–2 weeks</option>
+          <option value="more than 2 weeks">More than 2 weeks</option>
+          <option value="chronic / ongoing">Chronic / Ongoing</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Body Area / Location</div>
+        <select id="input-location">
+          <option value="">Select location</option>
+          <option value="head">Head</option>
+          <option value="chest">Chest</option>
+          <option value="abdomen">Abdomen / Stomach</option>
+          <option value="back">Back</option>
+          <option value="throat / neck">Throat / Neck</option>
+          <option value="arms / hands">Arms / Hands</option>
+          <option value="legs / feet">Legs / Feet</option>
+          <option value="skin">Skin / Surface</option>
+          <option value="whole body">Whole Body / General</option>
+          <option value="multiple areas">Multiple Areas</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Existing Conditions <span style="font-size:10px;letter-spacing:0;text-transform:none;color:var(--text3)">(optional)</span></div>
+        <input type="text" id="input-conditions" placeholder="e.g., Diabetes, Hypertension"/>
+      </div>
+
+      <button class="analyze-btn" id="analyze-btn" onclick="runTriage()">
+        <span class="btn-txt">🔬 &nbsp;Analyze Symptoms</span>
+        <span class="btn-load">
+          <span class="spinner"></span>
+          Analyzing with AI…
+        </span>
+      </button>
+    </div>
+
+    <!-- Main result area -->
+    <div class="triage-main" id="triage-main">
+      <div class="tm-empty" id="triage-empty">
+        <div class="empty-art">🩺</div>
+        <div class="empty-title">Ready to assess</div>
+        <div class="empty-sub">Fill in your symptoms on the left panel and click Analyze. The AI will triage your case and provide evidence-based guidance, advice, and nearby hospitals.</div>
+      </div>
+      <div id="result-wrap" style="display:none"></div>
+    </div>
+  </div>
+</div><!-- /page-triage -->
+
+
+<!-- ══════════════ HISTORY PAGE ══════════════ -->
+<div id="page-history" class="page">
+  <div class="history-wrap">
+    <div class="page-header">
+      <div class="page-h1">Triage History</div>
+      <div class="page-h1-sub">Your past symptom assessments and AI reports</div>
+    </div>
+    <div id="history-content"></div>
+  </div>
+</div><!-- /page-history -->
+
+
+<!-- ══════════════ LOGIN PAGE ══════════════ -->
+<div id="page-login" class="page">
+  <div class="auth-page">
+    <div class="auth-shell">
+      <div class="auth-hero">
+        <div>
+          <div class="auth-brand">Medi<em>Mind</em></div>
+          <div class="auth-badge">Secure access</div>
+          <h1>Your health workspace, ready whenever you need it.</h1>
+          <p>Sign in to revisit your triage history, manage your medications, update your health profile, and download your medical reports.</p>
+          <ul class="auth-list">
+            <li>Review past symptom assessments in one place</li>
+            <li>Keep your medication and health profile up to date</li>
+            <li>Download a professional PDF medical brief</li>
+          </ul>
+        </div>
+        <div class="auth-hero-foot">Built to feel as polished as the rest of MediMind</div>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-card-header">
+          <div class="auth-card-icon">🔐</div>
+          <div>
+            <h2>Sign In</h2>
+            <p>Continue to your personal care workspace</p>
+          </div>
+        </div>
+        <div id="login-err" class="modal-err" style="display:none"></div>
+        <div class="form-field">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="page-login-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Password</label>
+          <input type="password" id="page-login-pass" placeholder="Your password" autocomplete="current-password"/>
+        </div>
+        <div class="auth-actions">
+          <button id="login-submit-btn" class="btn-save auth-cta" onclick="submitAuth('login')">Sign In</button>
+          <button class="btn-cancel" onclick="showPage('register')">Create account</button>
+        </div>
+        <div class="auth-footnote">
+          <a onclick="showPage('forgot')" style="cursor:pointer">Forgot password?</a>
+        </div>
+        <div class="auth-divider"><span>or</span></div>
+        <button class="btn-outline btn-full google-btn" onclick="googleSignIn()">Continue with Google</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ REGISTER PAGE ══════════════ -->
+<div id="page-register" class="page">
+  <div class="auth-page">
+    <div class="auth-shell">
+      <div class="auth-hero">
+        <div>
+          <div class="auth-brand">Medi<em>Mind</em></div>
+          <div class="auth-badge">Free account</div>
+          <h1>Start your personal MediMind care journey.</h1>
+          <p>Create an account to save your triage history, manage your health data, and keep your care notes organized.</p>
+          <ul class="auth-list">
+            <li>Save all your past AI triage sessions</li>
+            <li>Track medications and medical notes securely</li>
+            <li>Access your health dashboard whenever you need it</li>
+          </ul>
+        </div>
+        <div class="auth-hero-foot">A cleaner, more trustworthy sign-up experience</div>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-card-header">
+          <div class="auth-card-icon">✦</div>
+          <div>
+            <h2>Create account</h2>
+            <p>Set up your free account in a minute</p>
+          </div>
+        </div>
+        <div id="register-err" class="modal-err" style="display:none"></div>
+        <div class="form-field">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="page-register-name" placeholder="Your full name" autocomplete="name"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="page-register-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Password</label>
+          <input type="password" id="page-register-pass" placeholder="Minimum 6 characters" autocomplete="new-password"/>
+        </div>
+        <div class="auth-actions">
+          <button id="register-submit-btn" class="btn-save auth-cta" onclick="submitAuth('register')">Create Account</button>
+          <button class="btn-cancel" onclick="showPage('login')">Back to login</button>
+        </div>
+        <div class="auth-divider"><span>or</span></div>
+        <button class="btn-outline btn-full google-btn" onclick="googleSignIn()">Continue with Google</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ MY HEALTH DASHBOARD PAGE ══════════════ -->
+<div id="page-forgot" class="page">
+  <div class="auth-page">
+    <div class="auth-shell">
+      <div class="auth-hero">
+        <div>
+          <div class="auth-brand">Medi<em>Mind</em></div>
+          <div class="auth-badge">Account recovery</div>
+          <h1>Reset your MediMind password securely.</h1>
+          <p>Use the email linked with your account. MediMind will verify the reset request before your password is changed.</p>
+          <ul class="auth-list">
+            <li>Recover access without losing your saved history</li>
+            <li>Return directly to your health dashboard after sign in</li>
+            <li>Keep profile, medication, and note data unchanged</li>
+          </ul>
+        </div>
+        <div class="auth-hero-foot">Password recovery for your MediMind account</div>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-card-header">
+          <div class="auth-card-icon">?</div>
+          <div>
+            <h2>Forgot password</h2>
+            <p id="forgot-step-text">Enter your account email to continue</p>
+          </div>
+        </div>
+        <div id="forgot-err" class="modal-err" style="display:none"></div>
+        <div class="form-field forgot-email-field">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="page-forgot-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="forgot-code-fields" style="display:none">
+          <div class="form-field">
+            <label class="form-label">Verification Code</label>
+            <input type="text" id="page-forgot-code" placeholder="Enter verification code" autocomplete="one-time-code"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">New Password</label>
+            <input type="password" id="page-forgot-new-pass" placeholder="Minimum 6 characters" autocomplete="new-password"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Confirm Password</label>
+            <input type="password" id="page-forgot-conf-pass" placeholder="Repeat new password" autocomplete="new-password"/>
+          </div>
+        </div>
+        <div class="auth-actions">
+          <button id="forgot-submit-btn" class="btn-save auth-cta" onclick="submitAuth('forgot')">Send Code</button>
+          <button class="btn-cancel" onclick="showPage('login')">Back to login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="page-dashboard" class="page">
+  <div class="dashboard-wrap">
+
+    <div class="dash-header">
+      <div>
+        <div class="dash-title">My Health Dashboard</div>
+        <div class="dash-sub">Manage your medications, health profile, and personal medical notes</div>
+      </div>
+      <div class="dash-header-actions">
+        <button class="btn-outline" onclick="openProfileSettings()">Profile Settings</button>
+        <button class="btn-solid" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="stats-strip" id="dash-stats">
+      <div class="skel" style="height:80px;border-radius:18px"></div>
+      <div class="skel" style="height:80px;border-radius:18px"></div>
+      <div class="skel" style="height:80px;border-radius:18px"></div>
+      <div class="skel" style="height:80px;border-radius:18px"></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="dash-tabs">
+      <button class="dash-tab active" data-tab="medications" onclick="switchDashTab('medications',this)">💊 Medications</button>
+      <button class="dash-tab"        data-tab="health-profile" onclick="switchDashTab('health-profile',this)">🩺 Health Profile</button>
+      <button class="dash-tab"        data-tab="notes" onclick="switchDashTab('notes',this)">📝 Medical Notes</button>
+      <button class="dash-tab"        data-tab="account" onclick="switchDashTab('account',this)">⚙️ Account</button>
+    </div>
+
+    <!-- ── MEDICATIONS PANEL ── -->
+    <div class="dash-panel active" id="panel-medications">
+      <div class="crud-card">
+        <div class="crud-card-header">
+          <div class="crud-card-title">
+            <div class="crud-card-icon icon-teal">💊</div>
+            Medications
+          </div>
+          <button class="btn-add" onclick="toggleAddMedForm()">+ Add Medication</button>
+        </div>
+
+        <!-- Add form (hidden by default) -->
+        <div class="add-form" id="add-med-form">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">New Medication</div>
+          <div class="form-grid">
+            <div class="form-field">
+              <label class="form-label">Medication Name <span style="color:var(--red)">*</span></label>
+              <input type="text" id="new-med-name" placeholder="e.g. Paracetamol"/>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Dosage <span style="color:var(--red)">*</span></label>
+              <input type="text" id="new-med-dosage" placeholder="e.g. 500mg"/>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Frequency <span style="color:var(--red)">*</span></label>
+              <input type="text" id="new-med-freq" placeholder="e.g. Twice daily"/>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Purpose</label>
+              <input type="text" id="new-med-purpose" placeholder="e.g. Fever / pain relief"/>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Prescribed By</label>
+              <input type="text" id="new-med-prescribed" placeholder="e.g. Dr. Ahmed"/>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Start Date</label>
+              <input type="date" id="new-med-start"/>
+            </div>
+            <div class="form-field form-full">
+              <label class="form-label">Notes</label>
+              <input type="text" id="new-med-notes" placeholder="Any additional notes…"/>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-cancel" onclick="toggleAddMedForm()">Cancel</button>
+            <button class="btn-save"   onclick="addMedication()">Add Medication</button>
+          </div>
+        </div>
+
+        <div id="med-list"></div>
+      </div>
+    </div>
+
+    <!-- ── HEALTH PROFILE PANEL ── -->
+    <div class="dash-panel" id="panel-health-profile">
+      <div class="crud-card">
+        <div class="crud-card-header">
+          <div class="crud-card-title">
+            <div class="crud-card-icon icon-blue">🩺</div>
+            Health Profile
+          </div>
+          </div>
+
+        <div id="health-profile-container">
+          <div style="text-align:center;padding:40px;color:var(--text3);font-size:13px">
+            Loading health profile…
+          </div>
+          <div class="profile-grid">
+            <!-- Left column -->
+            <div>
+              <div class="profile-section-title">Basic Information</div>
+              <div class="form-field" style="margin-bottom:12px">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" id="hp-dob"/>
+              </div>
+              <div class="form-grid">
+                <div class="form-field">
+                  <label class="form-label">Blood Group</label>
+                  <select id="hp-blood">
+                    <option value="">Select</option>
+                    <option>A+</option><option>A-</option>
+                    <option>B+</option><option>B-</option>
+                    <option>O+</option><option>O-</option>
+                    <option>AB+</option><option>AB-</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Gender</label>
+                  <select id="hp-gender">
+                    <option value="">Select</option>
+                    <option>Male</option><option>Female</option><option>Other</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Height (cm)</label>
+                  <input type="number" id="hp-height" placeholder="170" oninput="updateBMI()"/>
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Weight (kg)</label>
+                  <input type="number" id="hp-weight" placeholder="70" oninput="updateBMI()"/>
+                </div>
+              </div>
+              <div id="bmi-badge" class="bmi-badge" style="display:none"></div>
+
+              <div class="profile-section-title" style="margin-top:20px">Lifestyle</div>
+              <div style="display:flex;gap:24px;padding:12px 0">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="hp-smoker" style="width:auto"/> Smoker
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="hp-alcohol" style="width:auto"/> Alcohol use
+                </label>
+              </div>
+
+              <div class="profile-section-title" style="margin-top:12px">Emergency Contact</div>
+              <div class="form-field" style="margin-bottom:10px">
+                <label class="form-label">Contact Name</label>
+                <input type="text" id="hp-ec-name" placeholder="e.g. Ahmad Khan"/>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Contact Phone</label>
+                <input type="text" id="hp-ec-phone" placeholder="e.g. +92 300 1234567"/>
+              </div>
+            </div>
+
+            <!-- Right column -->
+            <div>
+              <div class="profile-section-title">Medical History</div>
+              <div class="form-field" style="margin-bottom:12px">
+                <label class="form-label">Allergies</label>
+                <textarea id="hp-allergies" style="min-height:70px"
+                  placeholder="e.g. Penicillin, Peanuts, Latex…"></textarea>
+              </div>
+              <div class="form-field" style="margin-bottom:12px">
+                <label class="form-label">Chronic Conditions</label>
+                <textarea id="hp-conditions" style="min-height:70px"
+                  placeholder="e.g. Type 2 Diabetes, Hypertension…"></textarea>
+              </div>
+              <div class="form-field" style="margin-bottom:12px">
+                <label class="form-label">Past Surgeries / Procedures</label>
+                <textarea id="hp-surgeries" style="min-height:70px"
+                  placeholder="e.g. Appendectomy (2019), Knee surgery (2021)…"></textarea>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Family Medical History</label>
+                <textarea id="hp-family" style="min-height:70px"
+                  placeholder="e.g. Father: Heart disease, Mother: Diabetes…"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MEDICAL NOTES PANEL ── -->
+    <div class="dash-panel" id="panel-notes">
+      <div class="crud-card">
+        <div class="crud-card-header">
+          <div class="crud-card-title">
+            <div class="crud-card-icon icon-purple">📝</div>
+            Medical Notes &amp; Health Journal
+          </div>
+          <button class="btn-add" onclick="toggleAddNoteForm()">+ Add Note</button>
+        </div>
+
+        <!-- Add form -->
+        <div class="add-form" id="add-note-form">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">New Medical Note</div>
+          <div class="form-grid">
+            <div class="form-field form-full">
+              <label class="form-label">Title <span style="color:var(--red)">*</span></label>
+              <input type="text" id="new-note-title" placeholder="e.g. Blood test results — May 2025"/>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Category</label>
+              <input type="text" id="new-note-cat" placeholder="e.g. Lab Result, Doctor Visit"/>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Date</label>
+              <input type="date" id="new-note-date"/>
+            </div>
+            <div class="form-field form-full">
+              <label class="form-label">Content <span style="color:var(--red)">*</span></label>
+              <textarea id="new-note-content" style="min-height:90px"
+                placeholder="Write your note here — doctor's advice, test results, symptoms you noticed…"></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-cancel" onclick="toggleAddNoteForm()">Cancel</button>
+            <button class="btn-save"   onclick="addNote()">Save Note</button>
+          </div>
+        </div>
+
+        <div id="notes-list"></div>
+      </div>
+    </div>
+
+    <!-- ── ACCOUNT SETTINGS PANEL ── -->
+    <div class="dash-panel" id="panel-account">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+        <div class="crud-card">
+          <div class="crud-card-header">
+            <div class="crud-card-title">
+              <div class="crud-card-icon icon-blue">👤</div>
+              Profile Details
+            </div>
+          </div>
+          <div class="form-field" style="margin-bottom:12px">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="acc-name" placeholder="Your name"/>
+          </div>
+          <div class="form-field" style="margin-bottom:18px">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="acc-email" disabled
+              style="opacity:.5;cursor:not-allowed" placeholder="email@example.com"/>
+          </div>
+          <div class="form-actions" style="justify-content:flex-start">
+            <button class="btn-save" onclick="saveAccountDetails()">Save Changes</button>
+            <button class="btn-outline" style="margin-left:8px" onclick="showPage('login')">Switch Account</button>
+          </div>
+        </div>
+
+        <div class="crud-card">
+          <div class="crud-card-header">
+            <div class="crud-card-title">
+              <div class="crud-card-icon icon-amber">🔐</div>
+              Change Password
+            </div>
+          </div>
+          <div class="form-field" style="margin-bottom:10px">
+            <label class="form-label">Current Password</label>
+            <input type="password" id="acc-curr-pass" placeholder="Your current password"/>
+          </div>
+          <div class="form-field" style="margin-bottom:10px">
+            <label class="form-label">New Password</label>
+            <input type="password" id="acc-new-pass" placeholder="Min. 6 characters"/>
+          </div>
+          <div class="form-field" style="margin-bottom:18px">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" id="acc-conf-pass" placeholder="Repeat new password"/>
+          </div>
+          <div class="form-actions" style="justify-content:flex-start">
+            <button class="btn-save" onclick="changePassword()">Update Password</button>
+          </div>
+        </div>
+
+        <div class="crud-card" style="border-color:rgba(230,57,70,.3);background:rgba(255,237,238,.3)">
+          <div class="crud-card-header">
+            <div class="crud-card-title">
+              <div class="crud-card-icon icon-red">⚠️</div>
+              Danger Zone
+            </div>
+          </div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:18px">
+            Permanently delete your account and all associated data including triage history,
+            medications, health profile, and medical notes. This action cannot be undone.
+          </p>
+          <button onclick="deleteAccount()"
+            style="padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;
+            cursor:pointer;background:var(--red);border:none;color:#fff;font-family:var(--sans)">
+            Delete My Account
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div><!-- /page-dashboard -->
+
+</div><!-- /#app -->
+
+
+<!-- ══════════════ AUTH MODAL ══════════════ -->
+<div class="overlay" id="auth-modal" onclick="overlayClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════ TOAST ══════════════ -->
+<div id="toast" class="toast hidden">
+  <span class="toast-dot"></span>
+  <span id="toast-msg"></span>
+</div>
+
+<!-- Separated JS files — app.js must come first -->
+<script>
+  // ─── Deployment config ───────────────────────────────────────
+  // After you deploy the backend (Render/Railway/etc.), paste its
+  // live URL below. Leave as null to auto-use localhost while developing.
+  window.MEDIMIND_API_BASE_URL = null; // e.g. "https://medimind-backend.onrender.com/api"
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js?v=1"></script>
+<script src="js/app.js?v=1"></script>
+<script src="js/triage.js?v=1"></script>
+<script src="js/crud.js?v=1"></script>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+# ── Secrets — NEVER commit these ──────────────────────────────
+backend/.env
+backend/.env.nvidia
+backend/.env.*
+!backend/.env.example
+backend/serviceAccountKey.json
+*.pem
+*.key
+
+# ── Databases ─────────────────────────────────────────────────
+backend/medimind.db
+*.sqlite3
+backend/data/chroma_db/
+
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.egg-info/
+
+# ── Node / frontend (if a build step is ever added) ───────────
+node_modules/
+dist/
+
+# ── OS / editor junk ──────────────────────────────────────────
+.DS_Store
+.vscode/
+*.log
