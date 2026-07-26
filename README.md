@@ -34,8 +34,8 @@ diagnostic tool** and says so throughout (see Safety & Ethics below).
 | **API (backend)**  | https://abdul-rafay19-medimind.up.railway.app |
 | **API docs**        | https://abdul-rafay19-medimind.up.railway.app/docs |
 
-> First request after idle time may take 30–50s — the free backend tier
-> sleeps when unused and needs to wake up. This is expected, not a bug.
+> First request after idle time may take a little longer while the free
+> backend tier wakes back up — this is expected, not a bug.
 
 ## c. Features
 
@@ -46,6 +46,7 @@ diagnostic tool** and says so throughout (see Safety & Ethics below).
 - Guest mode (try it without an account) and logged-in mode (saves your history)
 - Multi-turn follow-up Q&A on a completed triage session, with the original context retained
 - Downloadable PDF medical brief you can bring to a doctor
+- Nearby medical facilities lookup
 
 **Accounts & data**
 - Email/password registration and login (JWT-based sessions)
@@ -136,23 +137,41 @@ real healthcare professional.
 | PDF generation | fpdf2 |
 | Frontend | Plain HTML/CSS/JavaScript (no framework) |
 | Containerization | Docker |
-| Hosting | Railway (backend, Docker web service) + Vercel (static frontend) |
+| Hosting | Railway (backend, Docker web service, persistent volume for SQLite) + Vercel (static frontend) |
 
 ## f. Screenshots
 
-<!-- TODO: add at least 3 screenshots. Suggested shots:
-1. Home page
-2. Symptom-check flow showing a triage result (EMERGENCY or URGENT, so the color-coding is visible)
-3. Triage history page
-4. Health profile / medications CRUD screen
-5. The downloaded PDF report
+Screenshots of the live app in action:
 
-Put image files in a `screenshots/` folder in the repo root, then reference
-them like this: -->
+**Home dashboard**
+![Dashboard](screenshots/dashboard.png)
 
-![Home page](<img width="944" height="440" alt="image" src="https://github.com/user-attachments/assets/cc34edfc-c73d-41a4-bac5-ff805ead9f94" />)
-![Triage result](<img width="944" height="440" alt="image" src="https://github.com/user-attachments/assets/4aad894e-bcce-4db0-b287-67e0d556e142" />)
-![History](<img width="940" height="154" alt="image" src="https://github.com/user-attachments/assets/bd7d5edb-62d3-41a3-8a41-e3d968ae9abc" />)
+**Symptom check — entering symptoms**
+![Symptom check](screenshots/symptom_check.png)
+
+**AI-extracted symptoms and medical references (RAG grounding)**
+![Extracted symptoms and medical references](screenshots/extracted_symptoms_and_medical_references.png)
+
+**Follow-up questions on a completed triage session**
+![Follow-up questions](screenshots/follow-up_questions.png)
+
+**Health dashboard overview**
+![Health dashboard](screenshots/health_dashboard.png)
+
+**Health profile**
+![Health profile](screenshots/health_profile.png)
+
+**Medications tracker**
+![Medications](screenshots/medications.png)
+
+**Medical notes**
+![Medical notes](screenshots/medical_notes.png)
+
+**Nearby medical facilities**
+![Nearby medical facilities](screenshots/nearby_medical_facilities.png)
+
+**Downloadable PDF medical brief**
+![PDF medical brief](screenshots/pdf_medical_brief.png)
 
 ## g. How to run it locally
 
@@ -246,6 +265,7 @@ medimind/
 │   ├── index.html
 │   ├── css/
 │   └── js/
+├── screenshots/                    # app screenshots referenced above
 ├── render.yaml                     # optional Render deployment blueprint (live deploy uses Railway)
 ├── docker-compose.yml
 ├── DEPLOYMENT.md
