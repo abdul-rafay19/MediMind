@@ -150,9 +150,9 @@ real healthcare professional.
 Put image files in a `screenshots/` folder in the repo root, then reference
 them like this: -->
 
-![Home page](screenshots/home.png)
-![Triage result](screenshots/triage-result.png)
-![History](screenshots/history.png)
+![Home page](<img width="944" height="440" alt="image" src="https://github.com/user-attachments/assets/cc34edfc-c73d-41a4-bac5-ff805ead9f94" />)
+![Triage result](<img width="944" height="440" alt="image" src="https://github.com/user-attachments/assets/4aad894e-bcce-4db0-b287-67e0d556e142" />)
+![History](<img width="940" height="154" alt="image" src="https://github.com/user-attachments/assets/bd7d5edb-62d3-41a3-8a41-e3d968ae9abc" />)
 
 ## g. How to run it locally
 
