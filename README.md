@@ -30,7 +30,7 @@ diagnostic tool** and says so throughout (see Safety & Ethics below).
 
 | | |
 |---|---|
-| **App (frontend)** | <!-- TODO: paste your Vercel URL here once deployed --> |
+| **App (frontend)** | https://medimind-abdul-rafay19.vercel.app |
 | **API (backend)**  | https://abdul-rafay19-medimind.up.railway.app |
 | **API docs**        | https://abdul-rafay19-medimind.up.railway.app/docs |
 
