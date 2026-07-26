@@ -21,6 +21,7 @@ class UserRegister(BaseModel):
 class UserLogin(BaseModel):
     email:    EmailStr
     password: str
+    id_token: Optional[str] = None
 
 class UserProfile(BaseModel):
     id:                 int

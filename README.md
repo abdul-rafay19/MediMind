@@ -30,9 +30,9 @@ diagnostic tool** and says so throughout (see Safety & Ethics below).
 
 | | |
 |---|---|
-| **App (frontend)** | <!-- TODO: paste your Vercel/Netlify URL here, e.g. https://medimind-yourname.vercel.app --> |
-| **API (backend)**  | <!-- TODO: paste your Render URL here, e.g. https://medimind-backend.onrender.com --> |
-| **API docs**        | `<backend URL>/docs` (interactive Swagger UI) |
+| **App (frontend)** | <!-- TODO: paste your Vercel URL here once deployed --> |
+| **API (backend)**  | https://abdul-rafay19-medimind.up.railway.app |
+| **API docs**        | https://abdul-rafay19-medimind.up.railway.app/docs |
 
 > First request after idle time may take 30–50s — the free backend tier
 > sleeps when unused and needs to wake up. This is expected, not a bug.
@@ -136,7 +136,7 @@ real healthcare professional.
 | PDF generation | fpdf2 |
 | Frontend | Plain HTML/CSS/JavaScript (no framework) |
 | Containerization | Docker |
-| Hosting | Render (backend, Docker web service) + Vercel/Netlify (static frontend) |
+| Hosting | Railway (backend, Docker web service) + Vercel (static frontend) |
 
 ## f. Screenshots
 
@@ -208,7 +208,7 @@ docker-compose up --build
 - Backend: http://localhost:8000
 - API docs: http://localhost:8000/docs
 
-**Full deployment instructions** (Render + Vercel, to get a public live URL)
+**Full deployment instructions** (Railway + Vercel, to get a public live URL)
 are in [`DEPLOYMENT.md`](./DEPLOYMENT.md).
 
 ---
@@ -246,7 +246,7 @@ medimind/
 │   ├── index.html
 │   ├── css/
 │   └── js/
-├── render.yaml                     # Render deployment blueprint
+├── render.yaml                     # optional Render deployment blueprint (live deploy uses Railway)
 ├── docker-compose.yml
 ├── DEPLOYMENT.md
 └── README.md

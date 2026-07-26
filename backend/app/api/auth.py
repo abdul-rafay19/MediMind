@@ -34,7 +34,7 @@ async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
             get_firestore()
             from firebase_admin import auth as firebase_auth
 
-            decoded = firebase_auth.verify_id_token(data.id_token)
+            decoded = firebase_auth.verify_id_token(data.id_token, clock_skew_seconds=30)
             token_email = str(decoded.get("email") or "").strip().lower()
             if not token_email:
                 raise ValueError("Firebase token did not contain an email address")
@@ -80,7 +80,6 @@ async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
         user         = UserProfile.model_validate(user),
     )
 
-
 @router.get("/me", response_model=UserProfile)
 async def get_me(current_user: User = Depends(get_current_user)):
     return UserProfile.model_validate(current_user)
@@ -97,7 +96,7 @@ async def google_signin(data: GoogleSignInRequest, db: AsyncSession = Depends(ge
         get_firestore()
         from firebase_admin import auth as firebase_auth
 
-        decoded = firebase_auth.verify_id_token(data.id_token)
+        decoded = firebase_auth.verify_id_token(data.id_token, clock_skew_seconds=30)
         email = str(decoded.get("email") or "").strip().lower()
         full_name = decoded.get("name") or full_name
         if not email:

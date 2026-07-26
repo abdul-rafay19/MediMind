@@ -314,6 +314,31 @@ async function submitAuth(mode) {
     }
   }
 
+  if (mode === 'login' && firebaseAuth) {
+    try {
+      const firebaseUser = await firebaseAuth.signInWithEmailAndPassword(body.email, body.password);
+      idToken = await firebaseUser.user.getIdToken();
+    } catch (e) {
+      // Handle common Firebase sign-in errors explicitly to avoid confusing backend fallbacks.
+      const code = e?.code || (e && e.message && e.message.split(':')[0]) || '';
+      if (code === 'auth/wrong-password' || (e && e.message && e.message.includes('wrong-password'))) {
+        showAuthError(mode, 'Incorrect password. Please try again or reset your password.');
+        if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
+        return;
+      }
+      if (code === 'auth/user-not-found' || (e && e.message && e.message.includes('user-not-found'))) {
+        // Allow backend fallback — no Firebase user exists for this email.
+        console.warn('Firebase user not found; falling back to backend auth');
+      } else {
+        // Other errors (network, popup blocked, etc.) — surface to the user
+        const msg = e.message || 'Firebase sign-in failed';
+        showAuthError(mode, msg.replace('Firebase:', '').trim());
+        if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
+        return;
+      }
+    }
+  }
+
   if (idToken) {
     body.id_token = idToken;
   }
