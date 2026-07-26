@@ -319,26 +319,16 @@ async function submitAuth(mode) {
       const firebaseUser = await firebaseAuth.signInWithEmailAndPassword(body.email, body.password);
       idToken = await firebaseUser.user.getIdToken();
     } catch (e) {
-      // Handle common Firebase sign-in errors explicitly to avoid confusing backend fallbacks.
-      const code = e?.code || (e && e.message && e.message.split(':')[0]) || '';
-      if (code === 'auth/wrong-password' || (e && e.message && e.message.includes('wrong-password'))) {
-        showAuthError(mode, 'Incorrect password. Please try again or reset your password.');
-        if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
-        return;
-      }
-      if (code === 'auth/user-not-found' || (e && e.message && e.message.includes('user-not-found'))) {
-        // Allow backend fallback — no Firebase user exists for this email.
-        console.warn('Firebase user not found; falling back to backend auth');
-      } else {
-        // Other errors (network, popup blocked, etc.) — surface to the user
-        const msg = e.message || 'Firebase sign-in failed';
-        showAuthError(mode, msg.replace('Firebase:', '').trim());
-        if (btn) { btn.disabled = false; btn.textContent = 'Sign In →'; }
-        return;
-      }
+      // Firebase now returns a single generic 'auth/invalid-credential' code for
+      // BOTH "wrong password" and "no such user" (a recent Firebase security change
+      // to prevent account enumeration). We can no longer tell those apart here,
+      // so always fall back to the backend's own password check, which is the
+      // real source of truth for accounts that were created via SQLite/Firestore
+      // directly (e.g. through /docs) rather than through this browser's Firebase SDK.
+      console.warn('Firebase sign-in failed, falling back to backend auth:', e?.code || e?.message);
     }
   }
-
+  
   if (idToken) {
     body.id_token = idToken;
   }
