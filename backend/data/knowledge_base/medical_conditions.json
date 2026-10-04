@@ -1,0 +1,62 @@
+[
+  {
+    "title": "Chest Pain — Emergency Assessment",
+    "source": "WHO Emergency Care Guidelines",
+    "category": "emergency",
+    "content": "Chest pain is one of the most common presenting complaints in emergency medicine. It can range from benign causes to life-threatening conditions. Key red flags include: crushing or pressure-like chest pain, radiation to the left arm, jaw, or back, associated shortness of breath, diaphoresis (sweating), nausea or vomiting, and syncope or near-syncope. These symptoms may indicate acute myocardial infarction (heart attack), aortic dissection, pulmonary embolism, or tension pneumothorax — all of which are medical emergencies requiring immediate intervention. Any patient with chest pain and these associated symptoms should be directed to emergency services immediately. In Pakistan, emergency services can be reached at 1122 (Rescue Punjab) or 115 (Edhi Foundation)."
+  },
+  {
+    "title": "Fever — Assessment and Management",
+    "source": "WHO Fever Management Guidelines",
+    "category": "general",
+    "content": "Fever is defined as a body temperature above 38°C (100.4°F). It is commonly a sign that the body is fighting an infection. Most fevers in adults are caused by viral infections and resolve within 5-7 days. Management includes adequate hydration, rest, and antipyretics such as paracetamol (acetaminophen) or ibuprofen. Seek immediate medical attention if: fever exceeds 39.4°C (103°F) in adults, fever is accompanied by severe headache and stiff neck (possible meningitis), difficulty breathing, persistent vomiting, rash, confusion or altered consciousness, or fever lasting more than 3 days without improvement. In infants under 3 months, any fever requires immediate medical evaluation."
+  },
+  {
+    "title": "Headache — Classification and Red Flags",
+    "source": "International Headache Society Guidelines",
+    "category": "neurology",
+    "content": "Headaches are classified into primary (tension, migraine, cluster) and secondary (caused by underlying disease). Red flag features that require urgent evaluation: sudden onset severe headache ('thunderclap headache' — worst headache of life), headache with fever and neck stiffness, headache with neurological symptoms (weakness, vision changes, speech difficulty), headache after head trauma, progressive worsening headache, headache in immunocompromised patients, and new onset headache in patients over 50. These may indicate subarachnoid hemorrhage, meningitis, cerebral venous thrombosis, or mass lesions. Routine tension headaches can be managed with rest, hydration, and over-the-counter analgesics."
+  },
+  {
+    "title": "Respiratory Distress — Emergency Recognition",
+    "source": "WHO Emergency Triage Guidelines",
+    "category": "emergency",
+    "content": "Respiratory distress encompasses a spectrum from mild breathlessness to respiratory failure. Signs of severe respiratory distress requiring emergency care: respiratory rate above 30 breaths per minute, oxygen saturation below 94% on room air, use of accessory muscles of breathing, cyanosis (bluish discoloration of lips or fingertips), inability to complete full sentences, altered mental status, and rapid deterioration. Common causes include asthma exacerbation, COPD exacerbation, pulmonary embolism, pneumonia, pneumothorax, and cardiac causes (pulmonary edema). Patients with any severe features should receive emergency evaluation. Mild breathlessness with clear precipitants (exercise, anxiety) may be managed conservatively with position and rest."
+  },
+  {
+    "title": "Abdominal Pain — Differential Diagnosis",
+    "source": "Mayo Clinic Clinical Guidelines",
+    "category": "gastroenterology",
+    "content": "Abdominal pain has a wide differential ranging from benign to life-threatening. Emergency causes that require immediate evaluation: sudden severe pain (especially if constant), pain associated with vomiting blood or passing blood per rectum, rigid or board-like abdomen, pain following trauma, suspected ectopic pregnancy (sharp lower abdominal pain in women of reproductive age), and signs of sepsis (fever, tachycardia, hypotension). Common benign causes include gastroenteritis, constipation, irritable bowel syndrome, and menstrual cramps. Appendicitis typically presents with pain starting around the umbilicus migrating to the right lower quadrant, associated nausea, vomiting, and low-grade fever. Any severe or persistent abdominal pain warrants professional evaluation."
+  },
+  {
+    "title": "Dengue Fever — Recognition and Management",
+    "source": "WHO Dengue Guidelines for Pakistan",
+    "category": "infectious_disease",
+    "content": "Dengue fever is endemic in Pakistan and a significant public health concern. Classic presentation: sudden high fever (39-40°C), severe headache, pain behind the eyes, muscle and joint pain ('breakbone fever'), and skin rash appearing 3-5 days after fever onset. Warning signs of severe dengue requiring hospitalization: abdominal pain or tenderness, persistent vomiting, rapid breathing, bleeding gums or nose, blood in vomit or stool, fatigue and restlessness, liver enlargement, and rising hematocrit with rapid decline in platelet count. Management of mild dengue: rest, adequate hydration (2-3 liters/day), paracetamol for fever (avoid NSAIDs and aspirin as they increase bleeding risk), and close monitoring. Seek immediate care if warning signs appear or platelet count drops below 100,000."
+  },
+  {
+    "title": "Stroke — FAST Recognition",
+    "source": "WHO Stroke Guidelines",
+    "category": "neurology",
+    "content": "Stroke is a medical emergency. The FAST acronym helps identify stroke symptoms: F — Face drooping (ask person to smile; is one side drooping?), A — Arm weakness (ask to raise both arms; does one drift down?), S — Speech difficulty (is speech slurred or strange?), T — Time to call emergency services immediately. Additional stroke symptoms: sudden severe headache with no known cause, sudden vision problems in one or both eyes, sudden numbness or weakness of face, arm, or leg especially on one side of body, sudden trouble walking, dizziness, or loss of balance. Time is critical in stroke — every minute counts. Call emergency services immediately (1122 in Pakistan). Do not give food or water to a person suspected of having a stroke."
+  },
+  {
+    "title": "Diabetes — Hypoglycemia and Hyperglycemia",
+    "source": "International Diabetes Federation Guidelines",
+    "category": "endocrinology",
+    "content": "Hypoglycemia (low blood sugar, below 70 mg/dL) symptoms: shakiness, sweating, dizziness, rapid heartbeat, confusion, and in severe cases, loss of consciousness. Immediate treatment: give 15-20 grams of fast-acting carbohydrates (glucose tablets, fruit juice, or sugar). Recheck in 15 minutes. Severe hypoglycemia requires emergency services. Hyperglycemia (high blood sugar, above 250 mg/dL) symptoms: increased thirst and urination, headache, blurred vision, and fatigue. Diabetic ketoacidosis (DKA) — a life-threatening complication: fruity-smelling breath, deep rapid breathing, vomiting, abdominal pain, and confusion. DKA requires immediate emergency care. Patients with known diabetes should monitor blood glucose regularly and carry glucose tablets or sugar sources."
+  },
+  {
+    "title": "Wound Care and Infection Signs",
+    "source": "WHO Primary Care Guidelines",
+    "category": "primary_care",
+    "content": "Basic wound care: clean the wound with clean water or normal saline, apply gentle pressure to stop bleeding, cover with a clean bandage. Signs of wound infection requiring medical attention: increasing redness, warmth, and swelling, pus or unusual discharge, red streaks extending from the wound, increasing pain after initial improvement, fever, and swollen lymph nodes. Animal bites require immediate medical evaluation due to risk of rabies and other infections. All contaminated wounds, deep cuts, wounds with visible tendons or bone, and wounds with inability to achieve hemostasis after 10-15 minutes of pressure require emergency evaluation. Tetanus vaccination should be up to date for all wound patients."
+  },
+  {
+    "title": "Allergic Reactions and Anaphylaxis",
+    "source": "World Allergy Organization Guidelines",
+    "category": "emergency",
+    "content": "Anaphylaxis is a severe, life-threatening allergic reaction. Symptoms typically develop within minutes of exposure to a trigger: skin reactions (hives, flushing, itching), difficulty breathing, swelling of throat and tongue, rapid or weak pulse, nausea and vomiting, dizziness, and loss of consciousness. Common triggers include: foods (peanuts, tree nuts, shellfish, milk), medications (penicillin, aspirin), insect stings, and latex. Treatment: epinephrine (adrenaline) is the first-line treatment. Call emergency services (1122/115) immediately. Lay the patient flat with legs elevated unless breathing difficulty (then sit up). Mild allergic reactions (localized hives, mild itching without systemic symptoms) can be managed with antihistamines. Any reaction involving breathing difficulty, throat swelling, or cardiovascular symptoms is anaphylaxis and requires emergency care."
+  }
+]

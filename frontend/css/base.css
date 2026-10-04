@@ -1,0 +1,114 @@
+/* ══════════════════════════════════════════════
+   MediMind — Base Styles & Design Tokens
+   css/base.css
+══════════════════════════════════════════════ */
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Colors */
+  --ink:       #0a0e14;
+  --ink2:      #141b24;
+  --ink3:      #1e2a38;
+  --mist:      #f0f4f8;
+  --mist2:     #e2eaf2;
+  --text:      #0a0e14;
+  --text2:     #3d5166;
+  --text3:     #7a9ab5;
+  --wire:      #c8d8e8;
+  --wire2:     #dde8f0;
+  --teal:      #00b896;
+  --teal-lt:   #e6f9f5;
+  --teal-dk:   #007a64;
+  --red:       #e63946;
+  --red-lt:    #fdecea;
+  --amber:     #f4a261;
+  --amber-lt:  #fef3e8;
+  --green:     #2a9d5c;
+  --green-lt:  #e8f7ee;
+  --blue:      #2563eb;
+  --blue-lt:   #eff6ff;
+  --purple:    #7c3aed;
+  --purple-lt: #f5f3ff;
+
+  /* Typography */
+  --serif: 'Instrument Serif', serif;
+  --sans:  'Cabinet Grotesk', sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+
+  /* Radii */
+  --r:  10px;
+  --r2: 18px;
+  --r3: 28px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--mist);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle paper texture */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: .4;
+}
+
+#app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── Forms ─────────────────────────────────────────────────── */
+textarea,
+input[type=text],
+input[type=number],
+input[type=email],
+input[type=password],
+select {
+  width: 100%;
+  background: var(--mist);
+  border: 1.5px solid var(--wire2);
+  border-radius: var(--r);
+  padding: 11px 14px;
+  font-family: var(--sans); font-size: 13px;
+  color: var(--text);
+  transition: all .15s; resize: none; outline: none; line-height: 1.6;
+}
+textarea:focus, input:focus, select:focus {
+  border-color: var(--ink); background: white;
+  box-shadow: 0 0 0 3px rgba(10,14,20,.06);
+}
+select option { background: white; }
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes pgIn    { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
+@keyframes spin    { to   { transform: rotate(360deg) } }
+@keyframes blink   { 0%,100%{opacity:1} 50%{opacity:.3} }
+@keyframes skel    { 0%{background-position:200%} 100%{background-position:-200%} }
+@keyframes toastIn { from{opacity:0;transform:translateY(16px) scale(.95)} to{opacity:1;transform:translateY(0) scale(1)} }
+@keyframes modalIn { from{opacity:0;transform:scale(.92) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+@keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+
+/* ── Skeleton loader ─────────────────────────────────────────── */
+.skel {
+  background: linear-gradient(90deg, var(--mist2) 25%, white 50%, var(--mist2) 75%);
+  background-size: 200% 100%;
+  animation: skel 1.4s infinite;
+  border-radius: 6px;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--wire); border-radius: 3px; }
+
+/* ── Utility ─────────────────────────────────────────────────── */
+.mt-8  { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.hidden { display: none !important; }

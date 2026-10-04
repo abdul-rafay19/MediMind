@@ -1,0 +1,41 @@
+# Render.com Blueprint — deploys the MediMind backend as a Web Service.
+# Usage: Render Dashboard -> New -> Blueprint -> point at your GitHub repo.
+# After it deploys, add your real secrets in the Render dashboard
+# (Environment tab) — do NOT put real values here, this file is committed.
+services:
+  - type: web
+    name: medimind-backend
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_BASE_URL
+        value: https://integrate.api.nvidia.com/v1
+      - key: LLM_PRIMARY_MODEL
+        value: meta/llama-3.1-8b-instruct
+      - key: LLM_SECONDARY_MODEL
+        value: mistralai/mistral-7b-instruct-v0.3
+      - key: LLM_FALLBACK_MODEL
+        value: microsoft/phi-3-mini-4k-instruct
+      - key: LLM_MAX_TOKENS
+        value: "1500"
+      - key: LLM_TEMPERATURE
+        value: "0.1"
+      - key: CHROMA_PERSIST_DIR
+        value: ./data/chroma_db
+      - key: KNOWLEDGE_BASE_DIR
+        value: ./data/knowledge_base
+      - key: EMBEDDING_MODEL
+        value: all-MiniLM-L6-v2
+      - key: RAG_TOP_K
+        value: "5"
+      - key: FIREBASE_CREDENTIALS_JSON
+        sync: false
