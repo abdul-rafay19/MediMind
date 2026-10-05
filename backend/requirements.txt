@@ -25,9 +25,7 @@ python-multipart==0.0.9
 # ── HTTP Client ────────────────────────────────────────────────
 httpx==0.27.2
 
-# ── RAG Pipeline ──────────────────────────────────────────────
-sentence-transformers==3.1.1
-chromadb==0.5.11
+# ── RAG: lightweight BM25 built in (no extra deps) ──
 
 # ── PDF Generation ────────────────────────────────────────────
 fpdf2==2.7.9

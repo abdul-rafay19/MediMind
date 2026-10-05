@@ -1,101 +1,93 @@
 """
-MediMind RAG Service
-Retrieval-Augmented Generation over medical knowledge base
+MediMind RAG Service (lightweight)
+BM25 retrieval over the medical knowledge base — pure Python, no torch /
+sentence-transformers / chromadb, so it runs comfortably in ~100 MB RAM.
+Public interface is unchanged: initialize(), retrieve(), .ready, .collection.count()
 """
 
-import os
+import re
 import json
+import math
 import logging
 from pathlib import Path
+from collections import Counter
 from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
+_STOPWORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "have",
+    "i", "in", "is", "it", "its", "my", "of", "on", "or", "that", "the", "to",
+    "was", "were", "will", "with", "am", "me", "do", "does", "not", "this", "so",
+}
+
+
+def _tokenize(text: str) -> List[str]:
+    words = re.findall(r"[a-z0-9]+", text.lower())
+    return [w for w in words if w not in _STOPWORDS and len(w) > 1]
+
+
+class _Collection:
+    """Tiny shim so existing code calling rag_service.collection.count() keeps working."""
+
+    def __init__(self, service: "RAGService"):
+        self._service = service
+
+    def count(self) -> int:
+        return len(self._service._docs)
+
 
 class RAGService:
-    """
-    Medical RAG pipeline using ChromaDB + sentence-transformers.
-    Falls back gracefully if dependencies aren't installed.
-    """
-
     def __init__(self):
         self.collection = None
         self.embedding_fn = None
         self.ready = False
+        self._docs: List[Dict[str, Any]] = []
+        self._tf: List[Counter] = []
+        self._df: Counter = Counter()
+        self._avgdl = 0.0
 
     async def initialize(self):
-        """Load or build the vector store."""
+        """Load the knowledge base and build the BM25 index."""
         try:
-            import chromadb
-            from chromadb.utils import embedding_functions
             from app.core.config import settings
 
-            persist_dir = settings.CHROMA_PERSIST_DIR
-            os.makedirs(persist_dir, exist_ok=True)
+            kb_path = Path(settings.KNOWLEDGE_BASE_DIR)
+            if not kb_path.exists():
+                logger.warning(f"Knowledge base dir not found: {kb_path}")
+                return
 
-            self.embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-                model_name=settings.EMBEDDING_MODEL
-            )
+            for json_file in sorted(kb_path.glob("*.json")):
+                with open(json_file, encoding="utf-8") as f:
+                    entries = json.load(f)
+                for entry in entries:
+                    title = entry.get("title", "")
+                    for chunk in self._chunk_text(entry.get("content", "")):
+                        self._docs.append({
+                            "content": chunk,
+                            "source": entry.get("source", "Medical Reference"),
+                            "title": title,
+                            "category": entry.get("category", "general"),
+                        })
 
-            client = chromadb.PersistentClient(path=persist_dir)
-            self.collection = client.get_or_create_collection(
-                name="medical_knowledge",
-                embedding_function=self.embedding_fn,
-                metadata={"hnsw:space": "cosine"},
-            )
+            lengths = []
+            for d in self._docs:
+                # Title is included so title words also match
+                tokens = _tokenize(d["title"] + " " + d["content"])
+                tf = Counter(tokens)
+                self._tf.append(tf)
+                lengths.append(len(tokens))
+                self._df.update(tf.keys())
+            self._avgdl = (sum(lengths) / len(lengths)) if lengths else 0.0
 
-            # Seed knowledge base if empty
-            if self.collection.count() == 0:
-                await self._seed_knowledge_base(settings.KNOWLEDGE_BASE_DIR)
-
-            self.ready = True
-            logger.info(f"✅ RAG ready — {self.collection.count()} chunks indexed")
-
-        except ImportError as e:
-            logger.warning(f"⚠️ RAG dependencies missing ({e}). Using fallback mode.")
-            self.ready = False
+            self.collection = _Collection(self)
+            self.ready = bool(self._docs)
+            logger.info(f"✅ RAG ready — {len(self._docs)} chunks indexed (BM25)")
         except Exception as e:
             logger.error(f"❌ RAG init failed: {e}")
             self.ready = False
 
-    async def _seed_knowledge_base(self, kb_dir: str):
-        """Ingest JSON knowledge base files into ChromaDB."""
-        kb_path = Path(kb_dir)
-        if not kb_path.exists():
-            logger.warning(f"Knowledge base dir not found: {kb_dir}")
-            return
-
-        docs, ids, metadatas = [], [], []
-        idx = 0
-
-        for json_file in kb_path.glob("*.json"):
-            with open(json_file) as f:
-                entries = json.load(f)
-            for entry in entries:
-                chunks = self._chunk_text(entry.get("content", ""))
-                for chunk in chunks:
-                    docs.append(chunk)
-                    ids.append(f"doc_{idx}")
-                    metadatas.append({
-                        "source": entry.get("source", "Unknown"),
-                        "title": entry.get("title", ""),
-                        "category": entry.get("category", "general"),
-                    })
-                    idx += 1
-
-        if docs:
-            # Batch insert
-            batch_size = 100
-            for i in range(0, len(docs), batch_size):
-                self.collection.add(
-                    documents=docs[i:i+batch_size],
-                    ids=ids[i:i+batch_size],
-                    metadatas=metadatas[i:i+batch_size],
-                )
-            logger.info(f"✅ Indexed {len(docs)} chunks from {kb_dir}")
-
-    def _chunk_text(self, text: str, size: int = 512, overlap: int = 50) -> List[str]:
-        """Split text into overlapping chunks by word count."""
+    def _chunk_text(self, text: str, size: int = 200, overlap: int = 30) -> List[str]:
         words = text.split()
         chunks = []
         for i in range(0, len(words), size - overlap):
@@ -104,41 +96,49 @@ class RAGService:
                 chunks.append(chunk)
         return chunks
 
-    async def retrieve(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
-        """Retrieve top-k relevant medical chunks for a query."""
-        if not self.ready or not self.collection:
-            return self._fallback_retrieve(query)
+    def _score(self, q_tokens: List[str], idx: int, k1: float = 1.5, b: float = 0.75) -> float:
+        tf = self._tf[idx]
+        dl = sum(tf.values()) or 1
+        n = len(self._docs)
+        score = 0.0
+        for t in q_tokens:
+            f = tf.get(t, 0)
+            if not f:
+                continue
+            idf = math.log(1 + (n - self._df[t] + 0.5) / (self._df[t] + 0.5))
+            score += idf * (f * (k1 + 1)) / (f + k1 * (1 - b + b * dl / self._avgdl))
+        return score
 
+    async def retrieve(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        if not self.ready:
+            return self._fallback_retrieve(query)
         try:
-            results = self.collection.query(
-                query_texts=[query],
-                n_results=min(top_k, self.collection.count()),
-                include=["documents", "metadatas", "distances"],
-            )
-            sources = []
-            for doc, meta, dist in zip(
-                results["documents"][0],
-                results["metadatas"][0],
-                results["distances"][0],
-            ):
-                sources.append({
-                    "content": doc,
-                    "source": meta.get("source", "Medical Reference"),
-                    "title": meta.get("title", ""),
-                    "relevance": round(1 - dist, 3),
+            q_tokens = _tokenize(query)
+            scored = [(self._score(q_tokens, i), i) for i in range(len(self._docs))]
+            scored = [s for s in scored if s[0] > 0]
+            scored.sort(reverse=True)
+            if not scored:
+                return self._fallback_retrieve(query)
+
+            best = scored[0][0]
+            results = []
+            for score, i in scored[:top_k]:
+                d = self._docs[i]
+                results.append({
+                    "content": d["content"],
+                    "source": d["source"],
+                    "title": d["title"],
+                    "relevance": round(score / best, 3),
                 })
-            return sources
+            return results
         except Exception as e:
             logger.error(f"RAG retrieval error: {e}")
             return self._fallback_retrieve(query)
 
     def _fallback_retrieve(self, query: str) -> List[Dict[str, Any]]:
-        """Minimal fallback when RAG unavailable."""
-        return [
-            {
-                "content": "Always seek professional medical advice for accurate diagnosis and treatment.",
-                "source": "WHO General Health Guidelines",
-                "title": "Medical Disclaimer",
-                "relevance": 0.5,
-            }
-        ]
+        return [{
+            "content": "Always seek professional medical advice for accurate diagnosis and treatment.",
+            "source": "WHO General Health Guidelines",
+            "title": "Medical Disclaimer",
+            "relevance": 0.5,
+        }]
