@@ -21,8 +21,31 @@ let authView = 'login';
 let passwordResetState = { step: 'email', email: '', code: '' };
 let firebaseAuth = null;
 
+// ── Backend wake-up ────────────────────────────────────────────
+// Free hosting puts the backend to sleep when idle. Ping /health until it answers
+// so sign-in / sign-up don't fail with "Failed to fetch" while it is starting.
+let _backendAwake = false;
+async function ensureBackendAwake(onStatus) {
+  if (_backendAwake) return true;
+  const started = Date.now();
+  const LIMIT_MS = 120000;
+  while (Date.now() - started < LIMIT_MS) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15000);
+      const r = await fetch(API + '/health', { signal: ctrl.signal, cache: 'no-store' });
+      clearTimeout(timer);
+      if (r.ok) { _backendAwake = true; return true; }
+    } catch (e) { /* still waking up (or blocked by CORS) */ }
+    if (onStatus) onStatus(Math.round((Date.now() - started) / 1000));
+    await new Promise(res => setTimeout(res, 3000));
+  }
+  return false;
+}
+
 // ── Boot ───────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  ensureBackendAwake();   // start waking the server as soon as the page opens
   initFirebaseAuth();
   updateNav();
   showPage(token ? 'dashboard' : 'login');
@@ -301,10 +324,35 @@ async function submitAuth(mode) {
     body.preferred_language = 'en';
   }
 
+  // Wake the backend BEFORE touching Firebase, so we never create a Firebase
+  // account while the backend is unreachable (that left people stuck before).
+  if (btn) { btn.disabled = true; btn.textContent = 'Waking up server…'; }
+  const awake = await ensureBackendAwake(s => { if (btn) btn.textContent = `Waking up server… ${s}s`; });
+  if (!awake) {
+    showAuthError(mode, 'The MediMind server did not respond. Please try again in a minute. If it keeps happening, check that the backend is running and its ALLOWED_ORIGINS includes this website.');
+    if (btn) { btn.disabled = false; btn.textContent = mode === 'register' ? 'Create Account →' : 'Sign In →'; }
+    return;
+  }
+
   let idToken = null;
   if (mode === 'register' && firebaseAuth) {
     try {
-      const firebaseUser = await firebaseAuth.createUserWithEmailAndPassword(body.email, body.password);
+      let firebaseUser;
+      try {
+        firebaseUser = await firebaseAuth.createUserWithEmailAndPassword(body.email, body.password);
+      } catch (err) {
+        // Account may already exist in Firebase (earlier half-finished signup, or the
+        // backend data was reset). Reuse it if the password matches.
+        if (err && err.code === 'auth/email-already-in-use') {
+          try {
+            firebaseUser = await firebaseAuth.signInWithEmailAndPassword(body.email, body.password);
+          } catch (_) {
+            throw new Error('This email is already registered. Please sign in (or use "Forgot password").');
+          }
+        } else {
+          throw err;
+        }
+      }
       idToken = await firebaseUser.user.getIdToken();
     } catch (e) {
       const msg = e.message || 'Firebase signup failed';
@@ -337,7 +385,7 @@ async function submitAuth(mode) {
 
   try {
     const endpoint = mode === 'register' ? '/auth/register' : '/auth/login';
-    const res = await fetch(API + endpoint, {
+    let res = await fetch(API + endpoint, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(body),
@@ -348,6 +396,22 @@ async function submitAuth(mode) {
       data = await res.json();
     } catch (e) {
       data = {};
+    }
+
+    // Backend has no record of this user (e.g. its database was reset) but Firebase
+    // accepted the credentials -> let the backend re-create the account from the
+    // verified Firebase token.
+    if (!res.ok && mode === 'login' && res.status === 401 && idToken) {
+      try {
+        const res2 = await fetch(API + '/auth/google-signin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_token: idToken, preferred_language: 'en' }),
+        });
+        let data2 = {};
+        try { data2 = await res2.json(); } catch (e) { data2 = {}; }
+        if (res2.ok) { res = res2; data = data2; }
+      } catch (e) { /* keep the original 401 */ }
     }
 
     if (!res.ok) {
@@ -372,7 +436,7 @@ async function submitAuth(mode) {
   } catch(e) {
     const msg = e.message || 'Unexpected error';
     const friendly = msg.includes('Failed to fetch')
-      ? 'The MediMind server is not reachable right now. Please start the backend server and refresh the page.'
+      ? 'Could not reach the MediMind server. It may still be waking up — wait a few seconds and try again.'
       : msg;
     showAuthError(mode, friendly);
   } finally {
@@ -458,6 +522,7 @@ async function googleSignIn() {
       if (!user) throw new Error('No user returned from Firebase');
       const idToken = await user.getIdToken();
 
+      await ensureBackendAwake();
       const res = await fetch(API + '/auth/google-signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

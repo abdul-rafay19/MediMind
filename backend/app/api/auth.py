@@ -68,7 +68,8 @@ async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == data.email))
+    email  = str(data.email).strip().lower()
+    result = await db.execute(select(User).where(User.email == email))
     user   = result.scalar_one_or_none()
 
     if not user or not verify_password(data.password, user.hashed_password):
@@ -130,12 +131,13 @@ async def google_signin(data: GoogleSignInRequest, db: AsyncSession = Depends(ge
 
 @router.post("/forgot-password")
 async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == data.email))
+    email = str(data.email).strip().lower()
+    result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
     if user:
         code = f"{random.randint(100000, 999999)}"
-        _password_reset_codes[data.email] = {"code": code, "user_id": user.id}
+        _password_reset_codes[email] = {"code": code, "user_id": user.id}
         return {"message": "Verification code generated", "verification_code": code}
 
     return {"message": "If the email exists, a verification code was generated"}
@@ -143,7 +145,8 @@ async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depend
 
 @router.post("/reset-password")
 async def reset_password(data: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
-    reset_data = _password_reset_codes.get(str(data.email))
+    email = str(data.email).strip().lower()
+    reset_data = _password_reset_codes.get(email)
     if not reset_data or reset_data["code"] != data.verification_code:
         raise HTTPException(status_code=400, detail="Invalid verification code")
 
@@ -154,5 +157,5 @@ async def reset_password(data: ResetPasswordRequest, db: AsyncSession = Depends(
 
     user.hashed_password = hash_password(data.new_password)
     await db.flush()
-    _password_reset_codes.pop(str(data.email), None)
+    _password_reset_codes.pop(email, None)
     return {"message": "Password updated successfully"}
