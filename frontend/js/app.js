@@ -21,6 +21,10 @@ let authView = 'login';
 let passwordResetState = { step: 'email', email: '', code: '' };
 let firebaseAuth = null;
 
+// Page shown right after sign-in (and when an already signed-in user reopens the site).
+// Options: 'home' | 'triage' (Symptom Check) | 'history' | 'dashboard' (My Health)
+const POST_LOGIN_PAGE = 'triage';
+
 // ── Backend wake-up ────────────────────────────────────────────
 // Free hosting puts the backend to sleep when idle. Ping /health until it answers
 // so sign-in / sign-up don't fail with "Failed to fetch" while it is starting.
@@ -48,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ensureBackendAwake();   // start waking the server as soon as the page opens
   initFirebaseAuth();
   updateNav();
-  showPage(token ? 'dashboard' : 'login');
+  showPage(token ? POST_LOGIN_PAGE : 'login');
   // Silently request geolocation so it's ready when triage result shows
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -219,229 +223,168 @@ async function submitAuth(mode) {
       ? document.getElementById('register-submit-btn')
       : (document.getElementById('forgot-submit-btn') || document.getElementById('modal-btn'));
 
+  // First non-empty value among the given ids (works for both the full pages and the pop-up form).
   function getFieldValue(keys) {
     for (const k of keys) {
       const el = document.getElementById(k);
-      if (el && el.value !== undefined) return el.value.trim();
+      const v = el && el.value !== undefined ? String(el.value).trim() : '';
+      if (v) return v;
     }
     return '';
   }
 
-  function getActivePageValue(selector) {
-    const activePage = document.querySelector('.page.active');
-    if (!activePage) return '';
-    const el = activePage.querySelector(selector);
-    return el?.value?.trim() || '';
-  }
-
   clearAuthError(mode);
 
-  let email = '';
-  let pass = '';
-  let name = '';
-
+  let email = '', pass = '', name = '';
   if (mode === 'register') {
-    email = getFieldValue(['page-register-email']) || getActivePageValue('input[type=email]');
-    pass = getFieldValue(['page-register-pass']) || getActivePageValue('input[type=password]');
-    name = getFieldValue(['page-register-name']) || getActivePageValue('input[type=text]');
-    console.debug('register values', { email, passPresent: !!pass, name, mode, activePage: document.querySelector('.page.active')?.id });
+    email = getFieldValue(['page-register-email', 'm-email']);
+    pass  = getFieldValue(['page-register-pass', 'm-pass']);
+    name  = getFieldValue(['page-register-name', 'm-name']);
   } else if (mode === 'login') {
-    email = getFieldValue(['page-login-email']) || getActivePageValue('input[type=email]');
-    pass = getFieldValue(['page-login-pass']) || getActivePageValue('input[type=password]');
+    email = getFieldValue(['page-login-email', 'm-email']);
+    pass  = getFieldValue(['page-login-pass', 'm-pass']);
   } else if (mode === 'forgot') {
-    email = getFieldValue(['page-forgot-email']) || getActivePageValue('input[type=email]');
+    email = getFieldValue(['page-forgot-email', 'm-email']);
   }
 
-  if (mode === 'forgot') {
-    if (!email) { showAuthError(mode, 'Please enter your email'); return; }
-
-    if (passwordResetState.step === 'email') {
-      if (btn) { btn.disabled = true; btn.textContent = 'Please wait…'; }
-      try {
-        const res = await fetch(API + '/auth/forgot-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Could not start password reset');
-        passwordResetState.email = email;
-        passwordResetState.step = 'code';
-        passwordResetState.code = data.verification_code || '';
-        renderForgotPage();
-        toast('Verification code generated. Enter it below to continue.', 'success');
-      } catch (e) {
-        showAuthError(mode, e.message);
-      } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'Send verification code →'; }
-      }
-      return;
-    }
-
-    const code = getFieldValue(['page-forgot-code', 'm-code']);
-    const newPass = getFieldValue(['page-forgot-new-pass', 'm-new-pass']) || '';
-    const confPass = getFieldValue(['page-forgot-conf-pass', 'm-conf-pass']) || '';
-    if (!code) { showAuthError(mode, 'Please enter the verification code'); return; }
-    if (!newPass || newPass.length < 6) { showAuthError(mode, 'Password must be at least 6 characters'); return; }
-    if (newPass !== confPass) { showAuthError(mode, 'Passwords do not match'); return; }
-
-    if (btn) { btn.disabled = true; btn.textContent = 'Please wait…'; }
-    try {
-      const res = await fetch(API + '/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: passwordResetState.email,
-          verification_code: code,
-          new_password: newPass,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Could not reset password');
-      passwordResetState = { step: 'email', email: '', code: '' };
-      renderForgotPage();
-      showPage('login');
-      toast('Password updated successfully. Please sign in.', 'success');
-    } catch (e) {
-      showAuthError(mode, e.message);
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = 'Update password →'; }
-    }
-    return;
-  }
+  if (mode === 'forgot') { await sendPasswordResetLink(email, btn); return; }
 
   if (!email) { showAuthError(mode, 'Please enter your email'); return; }
-  if (mode !== 'forgot' && !pass)  { showAuthError(mode, 'Please enter your password'); return; }
-  if (mode === 'register' && pass.length < 6) {
-    showAuthError(mode, 'Password must be at least 6 characters'); return;
-  }
-
-  const body = { email: email.toLowerCase(), password: pass };
-
+  if (!pass)  { showAuthError(mode, 'Please enter your password'); return; }
   if (mode === 'register') {
     if (!name) { showAuthError(mode, 'Please enter your name'); return; }
-    body.full_name          = name;
-    body.preferred_language = 'en';
+    if (pass.length < 6) { showAuthError(mode, 'Password must be at least 6 characters'); return; }
   }
+  email = email.toLowerCase();
 
-  // Wake the backend BEFORE touching Firebase, so we never create a Firebase
-  // account while the backend is unreachable (that left people stuck before).
+  const idleLabel = mode === 'register' ? 'Create Account →' : 'Sign In →';
+  const restoreBtn = () => { if (btn) { btn.disabled = false; btn.textContent = idleLabel; } };
+
+  // The free backend sleeps when idle: wake it first so nothing half-finishes.
   if (btn) { btn.disabled = true; btn.textContent = 'Waking up server…'; }
   const awake = await ensureBackendAwake(s => { if (btn) btn.textContent = `Waking up server… ${s}s`; });
   if (!awake) {
     showAuthError(mode, 'The MediMind server did not respond. Please try again in a minute. If it keeps happening, check that the backend is running and its ALLOWED_ORIGINS includes this website.');
-    if (btn) { btn.disabled = false; btn.textContent = mode === 'register' ? 'Create Account →' : 'Sign In →'; }
+    restoreBtn();
     return;
   }
-
-  let idToken = null;
-  if (mode === 'register' && firebaseAuth) {
-    try {
-      let firebaseUser;
-      try {
-        firebaseUser = await firebaseAuth.createUserWithEmailAndPassword(body.email, body.password);
-      } catch (err) {
-        // Account may already exist in Firebase (earlier half-finished signup, or the
-        // backend data was reset). Reuse it if the password matches.
-        if (err && err.code === 'auth/email-already-in-use') {
-          try {
-            firebaseUser = await firebaseAuth.signInWithEmailAndPassword(body.email, body.password);
-          } catch (_) {
-            throw new Error('This email is already registered. Please sign in (or use "Forgot password").');
-          }
-        } else {
-          throw err;
-        }
-      }
-      idToken = await firebaseUser.user.getIdToken();
-    } catch (e) {
-      const msg = e.message || 'Firebase signup failed';
-      showAuthError(mode, msg.replace('Firebase:', '').trim());
-      if (btn) { btn.disabled = false; btn.textContent = mode === 'register' ? 'Create Account →' : 'Sign In →'; }
-      return;
-    }
-  }
-
-  if (mode === 'login' && firebaseAuth) {
-    try {
-      const firebaseUser = await firebaseAuth.signInWithEmailAndPassword(body.email, body.password);
-      idToken = await firebaseUser.user.getIdToken();
-    } catch (e) {
-      // Firebase now returns a single generic 'auth/invalid-credential' code for
-      // BOTH "wrong password" and "no such user" (a recent Firebase security change
-      // to prevent account enumeration). We can no longer tell those apart here,
-      // so always fall back to the backend's own password check, which is the
-      // real source of truth for accounts that were created via SQLite/Firestore
-      // directly (e.g. through /docs) rather than through this browser's Firebase SDK.
-      console.warn('Firebase sign-in failed, falling back to backend auth:', e?.code || e?.message);
-    }
-  }
-  
-  if (idToken) {
-    body.id_token = idToken;
-  }
-
-  if (btn) { btn.disabled = true; btn.textContent = 'Please wait…'; }
+  if (btn) btn.textContent = 'Please wait…';
 
   try {
-    const endpoint = mode === 'register' ? '/auth/register' : '/auth/login';
-    let res = await fetch(API + endpoint, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(body),
-    });
-
-    let data = {};
-    try {
-      data = await res.json();
-    } catch (e) {
-      data = {};
+    let data;
+    if (firebaseAuth) {
+      // Firebase proves who the user is; the backend then verifies that proof and issues our own token.
+      const cred = mode === 'register'
+        ? await firebaseAuth.createUserWithEmailAndPassword(email, pass)
+        : await firebaseAuth.signInWithEmailAndPassword(email, pass);
+      const idToken = await cred.user.getIdToken();
+      data = await exchangeFirebaseToken(idToken, mode === 'register' ? name : null);
+    } else {
+      data = await legacyPasswordAuth(mode, { email, password: pass, full_name: name });
     }
-
-    // Backend has no record of this user (e.g. its database was reset) but Firebase
-    // accepted the credentials -> let the backend re-create the account from the
-    // verified Firebase token.
-    if (!res.ok && mode === 'login' && res.status === 401 && idToken) {
-      try {
-        const res2 = await fetch(API + '/auth/google-signin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id_token: idToken, preferred_language: 'en' }),
-        });
-        let data2 = {};
-        try { data2 = await res2.json(); } catch (e) { data2 = {}; }
-        if (res2.ok) { res = res2; data = data2; }
-      } catch (e) { /* keep the original 401 */ }
+    finishLogin(data);
+  } catch (e) {
+    if (mode === 'register' && e && e.code === 'auth/email-already-in-use') {
+      // Carry the email over so "Back to login" is already filled in.
+      const le = document.getElementById('page-login-email');
+      if (le) le.value = email;
     }
-
-    if (!res.ok) {
-      if (res.status === 422 && Array.isArray(data.detail)) {
-        const firstErr = data.detail[0];
-        const field    = firstErr.loc?.join(' → ') || 'field';
-        const msg      = firstErr.msg || 'Validation error';
-        throw new Error(`${field}: ${msg}`);
-      }
-      throw new Error(data.detail || `${mode} failed (${res.status})`);
-    }
-
-    token       = data.access_token;
-    currentUser = data.user;
-    localStorage.setItem('mm_token', token);
-    localStorage.setItem('mm_user', JSON.stringify(currentUser));
-    closeModal();
-    updateNav();
-    showPage('dashboard');
-    toast(`Welcome, ${(currentUser.full_name || '').split(' ')[0]}! 🎉`, 'success');
-
-  } catch(e) {
-    const msg = e.message || 'Unexpected error';
-    const friendly = msg.includes('Failed to fetch')
-      ? 'Could not reach the MediMind server. It may still be waking up — wait a few seconds and try again.'
-      : msg;
-    showAuthError(mode, friendly);
+    showAuthError(mode, friendlyAuthError(e, mode));
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = mode === 'register' ? 'Create Account →' : 'Sign In →'; }
+    restoreBtn();
   }
+}
+
+// Turn Firebase / network errors into short, human messages.
+function friendlyAuthError(e, mode) {
+  const code = (e && e.code) || '';
+  const msg  = (e && e.message) || '';
+  switch (code) {
+    case 'auth/email-already-in-use':
+      return 'This email is already registered. Please sign in instead. (If you signed up with Google, use "Continue with Google".)';
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+    case 'auth/invalid-login-credentials':
+      return mode === 'login'
+        ? 'Incorrect email or password. (If you signed up with Google, use "Continue with Google".)'
+        : 'Incorrect email or password.';
+    case 'auth/invalid-email':        return 'Please enter a valid email address.';
+    case 'auth/weak-password':        return 'Password must be at least 6 characters.';
+    case 'auth/user-disabled':        return 'This account has been disabled.';
+    case 'auth/too-many-requests':    return 'Too many attempts. Please wait a few minutes, or use "Forgot password".';
+    case 'auth/network-request-failed': return 'Network problem. Please check your internet connection and try again.';
+  }
+  if (msg.includes('Failed to fetch')) {
+    return 'Could not reach the MediMind server. It may still be waking up — wait a few seconds and try again.';
+  }
+  return msg.replace(/^Firebase:\s*/, '').replace(/\s*\(auth\/[^)]+\)\.?$/, '').trim() || 'Something went wrong. Please try again.';
+}
+
+// Send the Firebase ID token to our backend; it verifies it and returns {access_token, user}.
+async function exchangeFirebaseToken(idToken, fullName) {
+  const res = await fetch(API + '/auth/firebase-login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id_token: idToken, full_name: fullName || null, preferred_language: 'en' }),
+  });
+  let data = {};
+  try { data = await res.json(); } catch (e) { data = {}; }
+  if (!res.ok) {
+    throw new Error(typeof data.detail === 'string' ? data.detail : `Sign-in failed (${res.status})`);
+  }
+  return data;
+}
+
+// Only used when Firebase is not configured (local development).
+async function legacyPasswordAuth(mode, body) {
+  const payload = { email: body.email, password: body.password };
+  if (mode === 'register') { payload.full_name = body.full_name; payload.preferred_language = 'en'; }
+  const res = await fetch(API + (mode === 'register' ? '/auth/register' : '/auth/login'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  let data = {};
+  try { data = await res.json(); } catch (e) { data = {}; }
+  if (!res.ok) {
+    if (res.status === 422 && Array.isArray(data.detail)) {
+      const first = data.detail[0] || {};
+      throw new Error(`${(first.loc || []).join(' → ') || 'field'}: ${first.msg || 'Validation error'}`);
+    }
+    throw new Error(typeof data.detail === 'string' ? data.detail : `${mode} failed (${res.status})`);
+  }
+  return data;
+}
+
+function finishLogin(data) {
+  token       = data.access_token;
+  currentUser = data.user;
+  localStorage.setItem('mm_token', token);
+  localStorage.setItem('mm_user', JSON.stringify(currentUser));
+  closeModal();
+  updateNav();
+  showPage(POST_LOGIN_PAGE);
+  toast(`Welcome, ${(currentUser.full_name || '').split(' ')[0]}! 🎉`, 'success');
+}
+
+// Forgot password: Firebase e-mails a secure reset link (no codes shown on screen).
+async function sendPasswordResetLink(email, btn) {
+  if (!email) { showAuthError('forgot', 'Please enter your email'); return; }
+  if (!firebaseAuth) { showAuthError('forgot', 'Password reset is not available right now.'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  let failed = null;
+  try {
+    await firebaseAuth.sendPasswordResetEmail(email.toLowerCase());
+  } catch (e) {
+    // "user-not-found" is treated like success so we never reveal which emails exist.
+    if (!e || e.code !== 'auth/user-not-found') failed = e;
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Resend link →'; }
+  if (failed) { showAuthError('forgot', friendlyAuthError(failed, 'forgot')); return; }
+  const stepText = document.getElementById('forgot-step-text');
+  if (stepText) stepText.textContent = `If an account exists for ${email}, a reset link is on its way. Check your inbox (and spam folder), set a new password, then sign in.`;
+  toast('Reset link sent — check your email', 'success');
 }
 
 function getAuthErrorElement(mode) {
@@ -476,25 +419,20 @@ function closeModal() {
 function overlayClick(e) { if (e.target.id === 'auth-modal') closeModal(); }
 
 function renderForgotPage() {
-  const isCodeStep = passwordResetState.step === 'code';
   const emailField = document.getElementById('page-forgot-email');
-  const codeField = document.getElementById('page-forgot-code');
-  const codeWrap = document.querySelector('.forgot-code-fields');
-  const stepText = document.getElementById('forgot-step-text');
-  const btn = document.getElementById('forgot-submit-btn');
-  if (emailField && passwordResetState.email) emailField.value = passwordResetState.email;
-  if (codeField && passwordResetState.code) codeField.value = passwordResetState.code;
-  if (emailField) emailField.disabled = isCodeStep;
-  if (codeWrap) codeWrap.style.display = isCodeStep ? 'block' : 'none';
-  if (stepText) stepText.textContent = isCodeStep
-    ? 'Enter the verification code and your new password'
-    : 'Enter your account email to continue';
-  if (btn) btn.textContent = isCodeStep ? 'Update Password' : 'Send Code';
+  const codeWrap   = document.querySelector('.forgot-code-fields');
+  const stepText   = document.getElementById('forgot-step-text');
+  const btn        = document.getElementById('forgot-submit-btn');
+  if (emailField) emailField.disabled = false;
+  if (codeWrap)   codeWrap.style.display = 'none';   // no verification-code step any more
+  if (stepText)   stepText.textContent = 'Enter your account email and we will send you a password reset link.';
+  if (btn)        btn.textContent = 'Send reset link →';
   clearAuthError('forgot');
 }
 
 function logout() {
   token = null; currentUser = null;
+  if (firebaseAuth) { firebaseAuth.signOut().catch(() => {}); }
   localStorage.removeItem('mm_token');
   localStorage.removeItem('mm_user');
   updateNav();
@@ -511,64 +449,27 @@ function openProfileSettings() {
 }
 
 async function googleSignIn() {
-  // If Firebase Auth is configured, prefer the popup flow and exchange the
-  // Firebase ID token with our backend which will verify it and create/return
-  // an application JWT. Otherwise fall back to the developer prompt flow.
-  if (firebaseAuth) {
-    try {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      const result = await firebaseAuth.signInWithPopup(provider);
-      const user = result.user;
-      if (!user) throw new Error('No user returned from Firebase');
-      const idToken = await user.getIdToken();
-
-      await ensureBackendAwake();
-      const res = await fetch(API + '/auth/google-signin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_token: idToken, preferred_language: 'en' }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Google sign-in failed');
-
-      token = data.access_token;
-      currentUser = data.user;
-      localStorage.setItem('mm_token', token);
-      localStorage.setItem('mm_user', JSON.stringify(currentUser));
-      updateNav();
-      showPage('dashboard');
-      toast(`Welcome, ${(currentUser.full_name || '').split(' ')[0]}!`, 'success');
-    } catch (e) {
-      const msg = e.message || 'Google sign-in could not be completed';
-      toast(msg.includes('popup_closed_by_user') ? 'Google sign-in was cancelled.' : msg, 'error');
-    }
-    return;
-  }
-
-  // Fallback developer flow: ask for email/name and call backend (no ID token)
-  const email = prompt('Enter the email you want to use for Google sign-in', currentUser?.email || '');
-  if (!email) return;
-  const name = prompt('Enter your display name', currentUser?.full_name || 'Google User');
-  if (!name) return;
-
+  if (!firebaseAuth) { toast('Google sign-in is not set up for this site.', 'error'); return; }
   try {
-    const res = await fetch(API + '/auth/google-signin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.toLowerCase(), full_name: name, preferred_language: 'en' }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Google sign-in failed');
-    token = data.access_token;
-    currentUser = data.user;
-    localStorage.setItem('mm_token', token);
-    localStorage.setItem('mm_user', JSON.stringify(currentUser));
-    updateNav();
-    showPage('dashboard');
-    toast(`Welcome, ${(currentUser.full_name || '').split(' ')[0]}!`, 'success');
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    // Must be the first async step so the browser does not block the pop-up.
+    const result = await firebaseAuth.signInWithPopup(provider);
+    if (!result || !result.user) throw new Error('No user returned from Google');
+    const idToken = await result.user.getIdToken();
+
+    toast('Signing you in…', 'success');
+    const awake = await ensureBackendAwake();
+    if (!awake) throw new Error('Failed to fetch');
+    finishLogin(await exchangeFirebaseToken(idToken, result.user.displayName));
   } catch (e) {
-    const msg = e.message || 'Google sign-in could not be completed';
-    toast(msg.includes('Failed to fetch') ? 'The MediMind server is not reachable right now.' : msg, 'error');
+    const code = (e && e.code) || '';
+    let msg;
+    if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') msg = 'Google sign-in was cancelled.';
+    else if (code === 'auth/popup-blocked') msg = 'Your browser blocked the Google pop-up. Please allow pop-ups for this site and try again.';
+    else if (code === 'auth/unauthorized-domain') msg = 'This website is not authorised for Google sign-in yet (Firebase Console → Authentication → Settings → Authorized domains).';
+    else msg = friendlyAuthError(e, 'login');
+    toast(msg, 'error');
   }
 }
 

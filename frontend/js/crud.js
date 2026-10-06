@@ -657,20 +657,45 @@ async function changePassword() {
   if (!curr || !next) { toast('Fill in both password fields', 'error'); return; }
   if (next !== conf)  { toast('New passwords do not match', 'error'); return; }
   if (next.length < 6){ toast('Minimum 6 characters', 'error'); return; }
+  function clearFields() {
+    ['acc-curr-pass','acc-new-pass','acc-conf-pass'].forEach(function(id) {
+      var el = document.getElementById(id); if (el) el.value = '';
+    });
+  }
   try {
+    if (typeof firebaseAuth !== 'undefined' && firebaseAuth) {
+      // Passwords are managed by Firebase: re-check the current one, then change it there.
+      var email  = (currentUser && currentUser.email) || '';
+      var fbUser = firebaseAuth.currentUser;
+      if (fbUser) {
+        await fbUser.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(email, curr));
+      } else {
+        fbUser = (await firebaseAuth.signInWithEmailAndPassword(email, curr)).user;
+      }
+      await fbUser.updatePassword(next);
+      toast('Password changed ✓', 'success');
+      clearFields();
+      return;
+    }
     var res = await fetch(API + '/profile/password', {
       method: 'PUT', headers: authHdr(),
       body: JSON.stringify({ current_password: curr, new_password: next }),
     });
     if (res.status === 204) {
       toast('Password changed ✓', 'success');
-      ['acc-curr-pass','acc-new-pass','acc-conf-pass'].forEach(function(id) {
-        var el = document.getElementById(id); if (el) el.value = '';
-      });
+      clearFields();
     } else {
       throw new Error((await res.json()).detail);
     }
-  } catch(e) { toast(e.message, 'error'); }
+  } catch(e) {
+    var code = (e && e.code) || '';
+    var msg = e.message;
+    if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') msg = 'Current password is incorrect (or this account uses Google sign-in).';
+    else if (code === 'auth/weak-password') msg = 'New password is too weak (minimum 6 characters).';
+    else if (code === 'auth/requires-recent-login') msg = 'For security, please sign out, sign in again, and retry.';
+    else if (code === 'auth/too-many-requests') msg = 'Too many attempts. Please wait a few minutes.';
+    toast(msg, 'error');
+  }
 }
 
 async function deleteAccount() {
@@ -678,6 +703,10 @@ async function deleteAccount() {
   if (!confirm('Are you absolutely sure?')) return;
   try {
     var res = await fetch(API + '/profile', { method: 'DELETE', headers: authHdr() });
-    if (res.status === 204) { toast('Account deleted', 'success'); logout(); }
+    if (res.status === 204) {
+      // Also remove the sign-in itself from Firebase (best effort).
+      try { if (typeof firebaseAuth !== 'undefined' && firebaseAuth && firebaseAuth.currentUser) await firebaseAuth.currentUser.delete(); } catch (err) {}
+      toast('Account deleted', 'success'); logout();
+    }
   } catch(e) { toast(e.message, 'error'); }
 }
