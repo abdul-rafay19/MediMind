@@ -53,6 +53,14 @@ app.include_router(health.router,  prefix="/api",         tags=["Health"])
 app.include_router(crud.router,    prefix="/api",         tags=["CRUD"])
 
 
+# Lightweight liveness probes for the hosting platform's load balancer.
+# (They answer instantly and never call external services, unlike /api/health.)
+@app.get("/health", include_in_schema=False)
+@app.get("/healthz", include_in_schema=False)
+async def liveness():
+    return {"status": "ok"}
+
+
 @app.get("/")
 async def root():
     return {"name": "MediMind API", "version": "3.0.0",
