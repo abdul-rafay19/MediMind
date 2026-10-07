@@ -6,6 +6,14 @@ CRUD tables: medications, health_profile, medical_notes
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Boolean, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+
+
+def _utcnow() -> datetime:
+    """UTC 'now' WITHOUT tzinfo.
+    The columns are plain DateTime (no time zone). SQLite accepts aware datetimes but
+    PostgreSQL (asyncpg) rejects them with "can't subtract offset-naive and offset-aware
+    datetimes", which broke every sign-up/sign-in on Postgres."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 from app.core.database import Base
 
 
@@ -29,10 +37,10 @@ class Medication(Base):
     is_active   = Column(Boolean, default=True)                # active vs archived
     notes       = Column(Text, nullable=True)
 
-    created_at  = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at  = Column(DateTime, default=_utcnow)
     updated_at  = Column(DateTime,
-                         default=lambda: datetime.now(timezone.utc),
-                         onupdate=lambda: datetime.now(timezone.utc))
+                         default=_utcnow,
+                         onupdate=_utcnow)
 
     user = relationship("User", back_populates="medications")
 
@@ -70,8 +78,8 @@ class HealthProfile(Base):
     alcohol_use = Column(Boolean, nullable=True)
 
     updated_at = Column(DateTime,
-                        default=lambda: datetime.now(timezone.utc),
-                        onupdate=lambda: datetime.now(timezone.utc))
+                        default=_utcnow,
+                        onupdate=_utcnow)
 
     user = relationship("User", back_populates="health_profile")
 
@@ -91,9 +99,9 @@ class MedicalNote(Base):
     category   = Column(String(100), nullable=True)   # e.g. Lab Result, Doctor Visit
     note_date  = Column(String(50),  nullable=True)   # user-entered date
 
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=_utcnow)
     updated_at = Column(DateTime,
-                        default=lambda: datetime.now(timezone.utc),
-                        onupdate=lambda: datetime.now(timezone.utc))
+                        default=_utcnow,
+                        onupdate=_utcnow)
 
     user = relationship("User", back_populates="medical_notes")

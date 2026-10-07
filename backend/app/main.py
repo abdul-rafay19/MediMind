@@ -1,6 +1,7 @@
 """MediMind — FastAPI Application Entry Point"""
 
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from contextlib import asynccontextmanager
@@ -35,6 +36,18 @@ app = FastAPI(
     version="3.0.0",
     lifespan=lifespan,
 )
+
+# Safety net: turn unexpected exceptions into a normal JSON 500. It is registered BEFORE
+# the CORS middleware (= inside it), so even error responses carry CORS headers and the
+# browser shows the real message instead of a misleading "Failed to fetch".
+@app.middleware("http")
+async def catch_unhandled_errors(request, call_next):
+    try:
+        return await call_next(request)
+    except Exception:
+        logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+        return JSONResponse(status_code=500, content={"detail": "Internal server error. Please try again."})
+
 
 app.add_middleware(
     CORSMiddleware,

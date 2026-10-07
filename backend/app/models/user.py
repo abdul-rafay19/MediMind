@@ -3,6 +3,14 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+
+
+def _utcnow() -> datetime:
+    """UTC 'now' WITHOUT tzinfo.
+    The columns are plain DateTime (no time zone). SQLite accepts aware datetimes but
+    PostgreSQL (asyncpg) rejects them with "can't subtract offset-naive and offset-aware
+    datetimes", which broke every sign-up/sign-in on Postgres."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 import secrets
 from app.core.database import Base
 
@@ -27,7 +35,7 @@ class User(Base):
     hashed_password    = Column(String, nullable=False)
     preferred_language = Column(String, default="en")
     is_active          = Column(Boolean, default=True)
-    created_at         = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at         = Column(DateTime, default=_utcnow)
 
     # Relationships
     sessions       = relationship("TriageSession", back_populates="user", cascade="all, delete-orphan")
