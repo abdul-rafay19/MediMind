@@ -35,6 +35,7 @@ class LLMService:
 
     async def _call(self, messages: List[Dict], max_tokens: int = None, temperature: float = None) -> str:
         last_error = None
+        all_errors = []
         _temp = temperature if temperature is not None else settings.LLM_TEMPERATURE
         if _temp == 0: _temp = 0.01
 
@@ -63,22 +64,22 @@ class LLMService:
                     )
                 if res.status_code == 429:
                     logger.warning(f"Rate limit on {model}, trying next…")
-                    last_error = "Rate limit"; continue
+                    last_error = "Rate limit"; all_errors.append(f"{model}: {last_error}"); continue
                 if res.status_code == 404:
                     logger.warning(f"Model not found: {model}")
-                    last_error = f"Model not found: {model}"; continue
+                    last_error = f"Model not found: {model}"; all_errors.append(f"{model}: {last_error}"); continue
                 if res.status_code != 200:
                     logger.warning(f"HTTP {res.status_code} from {model}: {res.text[:200]}")
-                    last_error = f"HTTP {res.status_code}"; continue
+                    last_error = f"HTTP {res.status_code} {res.text[:120]}"; all_errors.append(f"{model}: {last_error}"); continue
 
                 data    = res.json()
                 choices = data.get("choices", [])
                 if not choices:
-                    last_error = "Empty choices"; continue
+                    last_error = "Empty choices"; all_errors.append(f"{model}: {last_error}"); continue
 
                 text = choices[0].get("message", {}).get("content", "")
                 if not text:
-                    last_error = "Empty content"; continue
+                    last_error = "Empty content"; all_errors.append(f"{model}: {last_error}"); continue
 
                 logger.info(f"✅ Response from {model} ({len(text)} chars)")
                 return text
@@ -89,14 +90,14 @@ class LLMService:
                 )
             except httpx.TimeoutException:
                 logger.warning(f"Timeout on {model}, trying next…")
-                last_error = f"Timeout on {model}"; continue
+                last_error = f"Timeout on {model}"; all_errors.append(f"{model}: {last_error}"); continue
             except RuntimeError: raise
             except Exception as e:
                 logger.warning(f"Exception on {model}: {e}")
-                last_error = str(e); continue
+                last_error = str(e); all_errors.append(f"{model}: {last_error}"); continue
 
         raise RuntimeError(
-            f"All models failed. Last error: {last_error}\n"
+            f"All models failed -> {' | '.join(all_errors) or last_error}\n"
             f"Make sure OPENROUTER_API_KEY in .env is your NVIDIA NIM key (starts with nvapi-)\n"
             f"Get key free at: https://build.nvidia.com"
         )

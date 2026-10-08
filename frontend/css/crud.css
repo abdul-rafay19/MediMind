@@ -359,3 +359,114 @@
 }
 .stat-num   { font-family: var(--serif); font-style: italic; font-size: 26px; color: var(--text); }
 .stat-label { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — phones & small tablets
+   This file is loaded last, so these rules override the desktop
+   styles above. Desktop (> 980px) is left exactly as it was.
+══════════════════════════════════════════════════════════════ */
+html, body { max-width: 100%; overflow-x: clip; }
+img, svg, video, canvas { max-width: 100%; }
+
+/* ── Navigation: logo + buttons on top, page links on their own row ── */
+@media (max-width: 980px) {
+  nav {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "logo right" "links links";
+    height: auto; padding: 10px 16px; row-gap: 8px;
+  }
+  .logo       { grid-area: logo; }
+  .nav-right  { grid-area: right; gap: 8px; }
+  .nav-center {
+    grid-area: links; width: 100%;
+    justify-content: space-between; gap: 4px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .nav-center::-webkit-scrollbar { display: none; }
+  .nav-link { flex: 1 1 auto; white-space: nowrap; text-align: center; padding: 8px 10px; }
+  .btn-outline, .btn-solid { padding: 7px 12px; font-size: 12px; }
+}
+
+/* ── Page layouts: everything stacks into one column ── */
+@media (max-width: 900px) {
+  /* Home */
+  .hero-wrap       { grid-template-columns: 1fr; min-height: 0; }
+  .hero-left       { padding: 40px 22px 32px; }
+  .hero-left::after{ display: none; }
+  .hero-h1         { font-size: clamp(40px, 11.5vw, 56px); }
+  .hero-sub        { font-size: 15px; max-width: none; margin-bottom: 26px; }
+  .hero-ctas       { margin-bottom: 30px; }
+  .hero-trust      { flex-wrap: wrap; gap: 20px 28px; }
+  .hero-right      { padding: 32px 22px; }
+  .mock-card       { padding: 20px; }
+  .features-strip  { padding: 8px 16px; grid-template-columns: 1fr 1fr; }
+  .feat            { padding: 20px 14px; border-right: none; border-bottom: 1px solid var(--wire2); }
+  .feat:last-child { border-bottom: none; }
+
+  /* Symptom check */
+  .triage-layout   { grid-template-columns: 1fr; min-height: 0; }
+  .triage-sidebar  {
+    position: static; max-height: none; min-height: 0; overflow: visible;
+    border-right: none; border-bottom: 1px solid var(--wire2); padding: 24px 18px;
+  }
+  .triage-main     { padding: 24px 16px 40px; }
+  .tm-empty        { min-height: 240px; }
+  .result-banner   { padding: 20px 18px; gap: 14px; }
+  .banner-icon     { font-size: 34px; }
+  .banner-title    { font-size: 23px; }
+  .result-grid     { grid-template-columns: 1fr; }
+  .result-card.span2 { grid-column: auto; }
+  .sym-table       { display: block; overflow-x: auto; }
+  .hospitals-card, .chat-card { padding: 16px; }
+  .location-header { flex-wrap: wrap; gap: 8px; }
+
+  /* History */
+  .history-wrap    { width: 100%; box-sizing: border-box; padding: 28px 16px 48px; }
+  .page-h1         { font-size: 30px; }
+  .page-header     { margin-bottom: 24px; }
+  .hist-item       { flex-wrap: wrap; padding: 14px 16px; gap: 10px 12px; }
+  .hist-item:hover { transform: none; }
+  .hist-complaint  { flex: 1 1 calc(100% - 40px); min-width: 0; }
+  .hist-date       { text-align: left; min-width: 0; margin-right: auto; }
+  .hist-empty      { padding: 48px 16px; }
+
+  /* My Health dashboard */
+  .dashboard-wrap  { width: 100%; box-sizing: border-box; padding: 24px 16px 56px; }
+  .dash-header     { margin-bottom: 22px; }
+  .dash-title      { font-size: 30px; }
+  .dash-tabs       { width: 100%; overflow-x: auto; scrollbar-width: none; margin-bottom: 20px; }
+  .dash-tabs::-webkit-scrollbar { display: none; }
+  .dash-tab        { flex: 1 0 auto; white-space: nowrap; padding: 8px 14px; }
+  .stats-strip     { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .stat-card       { padding: 14px; gap: 10px; }
+  .form-grid, .form-grid-3, .profile-grid { grid-template-columns: 1fr; }
+  .crud-card       { padding: 18px 16px; }
+  .crud-card-header{ flex-wrap: wrap; gap: 12px; }
+  .add-form        { padding: 16px; }
+  .med-item        { flex-wrap: wrap; }
+  .med-item-actions{ width: 100%; }
+  .note-footer     { flex-wrap: wrap; gap: 8px; }
+
+  /* Sign in / create account / forgot password */
+  .auth-page       { padding: 20px 14px 40px; }
+
+  /* Pop-ups */
+  .toast           { left: 14px; right: 14px; bottom: 14px; max-width: none; }
+  .modal           { padding: 28px 20px; }
+}
+
+/* ── Small phones ── */
+@media (max-width: 520px) {
+  nav              { padding: 10px 12px; }
+  .logo            { font-size: 17px; gap: 9px; }
+  .logo em         { font-size: 19px; }
+  .logo-mark       { width: 32px; height: 32px; }
+  .nav-link        { font-size: 12.5px; padding: 8px 4px; }
+  .nav-center      { gap: 2px; }
+  .features-strip  { grid-template-columns: 1fr; }
+  .hero-left       { padding: 32px 18px 28px; }
+  .cta-primary, .cta-sec { flex: 1 1 100%; text-align: center; }
+  .dash-title      { font-size: 27px; }
+  .sidebar-heading { font-size: 22px; }
+}

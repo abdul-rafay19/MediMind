@@ -32,6 +32,31 @@ const POST_LOGIN_PAGE = 'triage';
 // (or restart during a deploy) while this page stays open.
 let _backendAwakeAt = 0;
 const AWAKE_TTL_MS = 3 * 60 * 1000;
+function serverRoot() { return String(API).replace(/\/api\/?$/, ''); }
+
+// A sleeping SnapDeploy container is only started by its own "wake page" (it runs JavaScript),
+// a plain fetch() does NOT wake it. So we load that page in a hidden frame, exactly like
+// opening the /health link by hand — but automatically.
+let _wakeFrame = null, _wakeFrameAt = 0;
+function triggerWakePage() {
+  if (!document.body || Date.now() - _wakeFrameAt < 90000) return;
+  _wakeFrameAt = Date.now();
+  try {
+    if (_wakeFrame && _wakeFrame.remove) _wakeFrame.remove();
+    const f = document.createElement('iframe');
+    f.src = serverRoot() + '/health';
+    f.setAttribute('aria-hidden', 'true');
+    f.tabIndex = -1;
+    f.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+    document.body.appendChild(f);
+    _wakeFrame = f;
+  } catch (e) { /* best effort */ }
+}
+function removeWakeFrame() {
+  try { if (_wakeFrame && _wakeFrame.remove) _wakeFrame.remove(); } catch (e) {}
+  _wakeFrame = null;
+}
+
 async function ensureBackendAwake(onStatus) {
   if (Date.now() - _backendAwakeAt < AWAKE_TTL_MS) return true;
   const started = Date.now();
@@ -42,12 +67,43 @@ async function ensureBackendAwake(onStatus) {
       const timer = setTimeout(() => ctrl.abort(), 15000);
       const r = await fetch(API + '/health', { signal: ctrl.signal, cache: 'no-store' });
       clearTimeout(timer);
-      if (r.ok) { _backendAwakeAt = Date.now(); return true; }
+      if (r.ok) { _backendAwakeAt = Date.now(); removeWakeFrame(); return true; }
     } catch (e) { /* still waking up (or blocked by CORS) */ }
+    triggerWakePage();   // first failed ping => the server is probably asleep: wake it
     if (onStatus) onStatus(Math.round((Date.now() - started) / 1000));
     await new Promise(res => setTimeout(res, 3000));
   }
   return false;
+}
+
+// Friendly progress while the free server wakes up (neutral colour, not an error).
+function styleAsInfo(el) {
+  el.style.color = '#0f766e'; el.style.background = '#ecfdf5'; el.style.borderColor = '#a7f3d0';
+}
+function showAuthInfo(mode, msg) {
+  const el = getAuthErrorElement(mode);
+  if (!el) return;
+  el.textContent = msg; styleAsInfo(el); el.style.display = 'block';
+}
+function showWakeHelp(mode) {
+  const el = getAuthErrorElement(mode);
+  if (!el) return;
+  el.textContent = 'The free server is taking a while to wake up. This page keeps trying by itself. If nothing happens, tap here, wait until it shows "ok", then come back: ';
+  const link = document.createElement('a');
+  link.href = serverRoot() + '/health'; link.target = '_blank'; link.rel = 'noopener';
+  link.textContent = 'Wake the server';
+  link.style.cssText = 'font-weight:700;text-decoration:underline';
+  if (el.appendChild) el.appendChild(link);
+  styleAsInfo(el); el.style.display = 'block';
+}
+// Returns the progress callback used while waiting for the server.
+function wakeProgress(mode, btn) {
+  let helped = false;
+  return (s) => {
+    if (btn) btn.textContent = `Waking up server… ${s}s`;
+    if (s >= 25 && !helped) { helped = true; showWakeHelp(mode); }
+    else if (!helped) showAuthInfo(mode, `Waking up the free server… ${s}s. This can take 1–2 minutes — please keep this page open.`);
+  };
 }
 
 // Shown when the server never answered. Gives the user two quick checks instead of a dead end.
@@ -273,16 +329,13 @@ async function submitAuth(mode) {
 
   // The free backend sleeps when idle: wake it first so nothing half-finishes.
   if (btn) { btn.disabled = true; btn.textContent = 'Waking up server…'; }
-  let hinted = false;
-  const awake = await ensureBackendAwake(s => {
-    if (btn) btn.textContent = `Waking up server… ${s}s`;
-    if (!hinted && s >= 6) { hinted = true; toast('The free server is waking up — this can take 1–2 minutes. Please keep this page open.', 'success'); }
-  });
+  const awake = await ensureBackendAwake(wakeProgress(mode, btn));
   if (!awake) {
     showAuthError(mode, serverUnreachableMessage());
     restoreBtn();
     return;
   }
+  clearAuthError(mode);
   if (btn) btn.textContent = 'Please wait…';
 
   try {
@@ -422,6 +475,7 @@ function clearAuthError(mode) {
   if (!el) return;
   el.textContent = '';
   el.style.display = 'none';
+  el.style.color = ''; el.style.background = ''; el.style.borderColor = '';
 }
 
 function modalErr(msg) {
@@ -469,18 +523,17 @@ async function googleSignIn() {
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
+    ensureBackendAwake();   // start waking the server while the user picks a Google account
     // Must be the first async step so the browser does not block the pop-up.
     const result = await firebaseAuth.signInWithPopup(provider);
     if (!result || !result.user) throw new Error('No user returned from Google');
     const idToken = await result.user.getIdToken();
 
-    toast('Signing you in…', 'success');
-    const awake = await ensureBackendAwake();
-    if (!awake) {
-      const onRegister = (document.querySelector('.page.active') || {}).id === 'page-register';
-      showAuthError(onRegister ? 'register' : 'login', serverUnreachableMessage());
-      return;
-    }
+    const onRegister = (document.querySelector('.page.active') || {}).id === 'page-register';
+    const gm = onRegister ? 'register' : 'login';
+    const awake = await ensureBackendAwake(wakeProgress(gm, null));
+    if (!awake) { showAuthError(gm, serverUnreachableMessage()); return; }
+    clearAuthError(gm);
     finishLogin(await exchangeFirebaseToken(idToken, result.user.displayName));
   } catch (e) {
     const code = (e && e.code) || '';
