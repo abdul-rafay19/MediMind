@@ -23,28 +23,39 @@ let firebaseAuth = null;
 
 // Page shown right after sign-in (and when an already signed-in user reopens the site).
 // Options: 'home' | 'triage' (Symptom Check) | 'history' | 'dashboard' (My Health)
-const POST_LOGIN_PAGE = 'home';
+const POST_LOGIN_PAGE = 'triage';
 
 // ── Backend wake-up ────────────────────────────────────────────
 // Free hosting puts the backend to sleep when idle. Ping /health until it answers
 // so sign-in / sign-up don't fail with "Failed to fetch" while it is starting.
-let _backendAwake = false;
+// "Awake" is only trusted for a few minutes: the free server can go back to sleep
+// (or restart during a deploy) while this page stays open.
+let _backendAwakeAt = 0;
+const AWAKE_TTL_MS = 3 * 60 * 1000;
 async function ensureBackendAwake(onStatus) {
-  if (_backendAwake) return true;
+  if (Date.now() - _backendAwakeAt < AWAKE_TTL_MS) return true;
   const started = Date.now();
-  const LIMIT_MS = 120000;
+  const LIMIT_MS = 180000;
   while (Date.now() - started < LIMIT_MS) {
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 15000);
       const r = await fetch(API + '/health', { signal: ctrl.signal, cache: 'no-store' });
       clearTimeout(timer);
-      if (r.ok) { _backendAwake = true; return true; }
+      if (r.ok) { _backendAwakeAt = Date.now(); return true; }
     } catch (e) { /* still waking up (or blocked by CORS) */ }
     if (onStatus) onStatus(Math.round((Date.now() - started) / 1000));
     await new Promise(res => setTimeout(res, 3000));
   }
   return false;
+}
+
+// Shown when the server never answered. Gives the user two quick checks instead of a dead end.
+function serverUnreachableMessage() {
+  const root = String(API).replace(/\/api\/?$/, '');
+  return `The MediMind server did not respond. The free server sleeps when idle and can take 1–2 minutes to wake up, so please try again. ` +
+         `If it keeps failing, open ${root}/health in a new tab: if it shows "ok" but this page still fails, the server's ALLOWED_ORIGINS must include ${location.origin}; ` +
+         `if it does not load at all, check your internet connection (a VPN, ad-blocker or data-saver can block it).`;
 }
 
 // ── Boot ───────────────────────────────────────────────────────
@@ -262,9 +273,13 @@ async function submitAuth(mode) {
 
   // The free backend sleeps when idle: wake it first so nothing half-finishes.
   if (btn) { btn.disabled = true; btn.textContent = 'Waking up server…'; }
-  const awake = await ensureBackendAwake(s => { if (btn) btn.textContent = `Waking up server… ${s}s`; });
+  let hinted = false;
+  const awake = await ensureBackendAwake(s => {
+    if (btn) btn.textContent = `Waking up server… ${s}s`;
+    if (!hinted && s >= 6) { hinted = true; toast('The free server is waking up — this can take 1–2 minutes. Please keep this page open.', 'success'); }
+  });
   if (!awake) {
-    showAuthError(mode, 'The MediMind server did not respond. Please try again in a minute. If it keeps happening, check that the backend is running and its ALLOWED_ORIGINS includes this website.');
+    showAuthError(mode, serverUnreachableMessage());
     restoreBtn();
     return;
   }
@@ -316,6 +331,7 @@ function friendlyAuthError(e, mode) {
     case 'auth/network-request-failed': return 'Network problem. Please check your internet connection and try again.';
   }
   if (msg.includes('Failed to fetch')) {
+    _backendAwakeAt = 0;   // don't trust the cached "awake" state after a network failure
     return 'Could not reach the MediMind server. It may still be waking up — wait a few seconds and try again.';
   }
   return msg.replace(/^Firebase:\s*/, '').replace(/\s*\(auth\/[^)]+\)\.?$/, '').trim() || 'Something went wrong. Please try again.';
@@ -460,7 +476,11 @@ async function googleSignIn() {
 
     toast('Signing you in…', 'success');
     const awake = await ensureBackendAwake();
-    if (!awake) throw new Error('Failed to fetch');
+    if (!awake) {
+      const onRegister = (document.querySelector('.page.active') || {}).id === 'page-register';
+      showAuthError(onRegister ? 'register' : 'login', serverUnreachableMessage());
+      return;
+    }
     finishLogin(await exchangeFirebaseToken(idToken, result.user.displayName));
   } catch (e) {
     const code = (e && e.code) || '';
