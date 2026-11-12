@@ -86,8 +86,8 @@ async function runTriage() {
         <div style="font-size:32px;margin-bottom:12px">⚠️</div>
         <div style="font-size:14px;color:var(--red);font-weight:600">${e.message}</div>
         <div style="font-size:12px;color:var(--text3);margin-top:8px">
-          Make sure Ollama is running and a model is pulled.<br/>
-          Check: <code style="background:var(--mist2);padding:2px 6px;border-radius:4px">http://localhost:11434/api/tags</code>
+          The analysis service is temporarily unavailable. Please try again in a moment.<br/>
+          <strong>If you feel seriously unwell, do not wait: call 1122 (Rescue) or 115 (Edhi), or go to the nearest emergency room.</strong>
         </div>
       </div>`;
     toast(e.message || 'Analysis failed', 'error');

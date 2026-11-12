@@ -16,11 +16,11 @@ from app.models.schemas import (
 
 logger = logging.getLogger(__name__)
 
-MODEL_CHAIN = [
+MODEL_CHAIN = [m for m in (
     settings.LLM_PRIMARY_MODEL,
     settings.LLM_SECONDARY_MODEL,
     settings.LLM_FALLBACK_MODEL,
-]
+) if m]
 
 
 class LLMService:
@@ -39,6 +39,8 @@ class LLMService:
         _temp = temperature if temperature is not None else settings.LLM_TEMPERATURE
         if _temp == 0: _temp = 0.01
 
+        if not MODEL_CHAIN:
+            raise RuntimeError("No LLM models configured (set LLM_PRIMARY_MODEL).")
         for model in MODEL_CHAIN:
             try:
                 payload = {
@@ -65,7 +67,7 @@ class LLMService:
                 if res.status_code == 429:
                     logger.warning(f"Rate limit on {model}, trying next…")
                     last_error = "Rate limit"; all_errors.append(f"{model}: {last_error}"); continue
-                if res.status_code == 404:
+                if res.status_code in (404, 410):
                     logger.warning(f"Model not found: {model}")
                     last_error = f"Model not found: {model}"; all_errors.append(f"{model}: {last_error}"); continue
                 if res.status_code != 200:
@@ -96,11 +98,9 @@ class LLMService:
                 logger.warning(f"Exception on {model}: {e}")
                 last_error = str(e); all_errors.append(f"{model}: {last_error}"); continue
 
-        raise RuntimeError(
-            f"All models failed -> {' | '.join(all_errors) or last_error}\n"
-            f"Make sure OPENROUTER_API_KEY in .env is your NVIDIA NIM key (starts with nvapi-)\n"
-            f"Get key free at: https://build.nvidia.com"
-        )
+        # Full detail goes to the server log only; users get a safe message.
+        logger.error("All models failed -> %s", " | ".join(all_errors) or last_error)
+        raise RuntimeError("The analysis service is temporarily unavailable. Please try again shortly.")
 
     def _extract_json(self, text: str) -> dict:
         # Strip thinking tags (some reasoning models emit these)

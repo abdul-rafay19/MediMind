@@ -23,7 +23,7 @@ let firebaseAuth = null;
 
 // Page shown right after sign-in (and when an already signed-in user reopens the site).
 // Options: 'home' | 'triage' (Symptom Check) | 'history' | 'dashboard' (My Health)
-const POST_LOGIN_PAGE = 'triage';
+const POST_LOGIN_PAGE = 'home';
 
 // ── Backend wake-up ────────────────────────────────────────────
 // Free hosting puts the backend to sleep when idle. Ping /health until it answers

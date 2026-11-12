@@ -43,3 +43,18 @@ async def health_check(request: Request):
         },
         "database": "connected",
     }
+
+
+@router.get("/health/models")
+async def health_models():
+    """Which configured models actually exist on the provider right now."""
+    configured = [m for m in (settings.LLM_PRIMARY_MODEL, settings.LLM_SECONDARY_MODEL, settings.LLM_FALLBACK_MODEL) if m]
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res = await client.get(f"{settings.OPENROUTER_BASE_URL.rstrip('/')}/models",
+                                   headers={"Authorization": f"Bearer {settings.OPENROUTER_API_KEY}"})
+        res.raise_for_status()
+        live = {m["id"] for m in res.json().get("data", [])}
+    except Exception as e:
+        return {"error": f"could not list models ({str(e)[:80]})", "configured": configured}
+    return {"configured": {m: (m in live) for m in configured}, "live_model_count": len(live)}

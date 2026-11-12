@@ -24,7 +24,7 @@ async def _run_triage(request_body: TriageRequest, user_id, rag_service):
         profile, triage = await llm_service.extract_and_triage(request_body, rag_sources)
     except Exception as e:
         logger.error(f"Triage failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=503, detail="The analysis service is temporarily unavailable. Please try again shortly.")
 
     session_token = str(uuid.uuid4())
     doc = await fs_create_session(user_id, {

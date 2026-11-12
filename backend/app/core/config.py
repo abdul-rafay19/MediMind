@@ -22,9 +22,9 @@ class Settings(BaseSettings):
     # ── NVIDIA NIM ─────────────────────────────────────────────
     OPENROUTER_API_KEY:  str = "nvapi-YOUR-KEY-HERE"
     OPENROUTER_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
-    LLM_PRIMARY_MODEL:   str = "meta/llama-3.1-8b-instruct"
-    LLM_SECONDARY_MODEL: str = "mistralai/mistral-7b-instruct-v0.3"
-    LLM_FALLBACK_MODEL:  str = "microsoft/phi-3-mini-4k-instruct"
+    LLM_PRIMARY_MODEL:   str = ""   # set via env after checking GET /v1/models
+    LLM_SECONDARY_MODEL: str = ""
+    LLM_FALLBACK_MODEL:  str = ""
     LLM_MAX_TOKENS:    int   = 1500
     LLM_TEMPERATURE:   float = 0.1
 
