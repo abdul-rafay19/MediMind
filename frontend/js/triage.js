@@ -42,7 +42,7 @@ async function runTriage() {
     <div style="padding:40px 0;text-align:center">
       <div style="font-size:32px;margin-bottom:16px">🔬</div>
       <div style="font-family:var(--serif);font-style:italic;font-size:20px;color:var(--text);margin-bottom:8px">Analyzing your symptoms…</div>
-      <div style="font-size:13px;color:var(--text3)">This can take 30–60 seconds on first run while the AI model loads.</div>
+      <div style="font-size:13px;color:var(--text3)">Usually a few seconds. If the server was idle, the first request can take up to 90 seconds to wake it.</div>
       <div style="margin-top:20px;display:flex;gap:8px;justify-content:center">
         ${[1,2,3].map(i=>`<div class="skel" style="width:200px;height:14px;animation-delay:${i*.15}s"></div>`).join('')}
       </div>

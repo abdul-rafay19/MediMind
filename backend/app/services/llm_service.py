@@ -4,6 +4,7 @@ Uses https://integrate.api.nvidia.com/v1 (OpenAI-compatible, free tier)
 Average response: 3-8 seconds on NVIDIA H100 cloud GPUs
 """
 
+import asyncio
 import json
 import logging
 import httpx
@@ -23,6 +24,11 @@ MODEL_CHAIN = [m for m in (
 ) if m]
 
 
+# Seconds each model in the chain may take before we move to the next one.
+# (primary, secondary, fallback). A hung model must not make the user wait 90 s.
+MODEL_TIMEOUTS = [15.0, 25.0, 15.0]
+
+
 class LLMService:
 
     def __init__(self):
@@ -32,8 +38,10 @@ class LLMService:
             "Content-Type":  "application/json",
             "Authorization": f"Bearer {self.api_key}",
         }
+        # One shared client: keeps the TLS connection open between calls (saves ~0.5-1 s each).
+        self._client = httpx.AsyncClient(timeout=30.0)
 
-    async def _call(self, messages: List[Dict], max_tokens: int = None, temperature: float = None) -> str:
+    async def _call(self, messages: List[Dict], max_tokens: int = None, temperature: float = None, validate=None) -> str:
         last_error = None
         all_errors = []
         _temp = temperature if temperature is not None else settings.LLM_TEMPERATURE
@@ -41,7 +49,8 @@ class LLMService:
 
         if not MODEL_CHAIN:
             raise RuntimeError("No LLM models configured (set LLM_PRIMARY_MODEL).")
-        for model in MODEL_CHAIN:
+        for idx, model in enumerate(MODEL_CHAIN):
+            per_model_timeout = MODEL_TIMEOUTS[min(idx, len(MODEL_TIMEOUTS) - 1)]
             try:
                 payload = {
                     "model":       model,
@@ -52,12 +61,16 @@ class LLMService:
                 }
                 logger.info(f"Calling model: {model}")
 
-                async with httpx.AsyncClient(timeout=90.0) as client:
-                    res = await client.post(
+                # wait_for gives a hard overall limit (httpx's own timeout is per network read)
+                res = await asyncio.wait_for(
+                    self._client.post(
                         f"{self.base_url}/chat/completions",
                         headers=self.headers,
                         json=payload,
-                    )
+                        timeout=per_model_timeout,
+                    ),
+                    timeout=per_model_timeout,
+                )
 
                 if res.status_code == 401:
                     raise RuntimeError(
@@ -83,6 +96,13 @@ class LLMService:
                 if not text:
                     last_error = "Empty content"; all_errors.append(f"{model}: {last_error}"); continue
 
+                if validate is not None:
+                    try:
+                        validate(text)
+                    except Exception as ve:
+                        logger.warning(f"Unusable output from {model}: {str(ve)[:120]}")
+                        last_error = "Unusable output"; all_errors.append(f"{model}: {last_error}"); continue
+
                 logger.info(f"✅ Response from {model} ({len(text)} chars)")
                 return text
 
@@ -90,7 +110,7 @@ class LLMService:
                 raise RuntimeError(
                     f"Cannot connect to {self.base_url}. Check your internet connection."
                 )
-            except httpx.TimeoutException:
+            except (httpx.TimeoutException, asyncio.TimeoutError):
                 logger.warning(f"Timeout on {model}, trying next…")
                 last_error = f"Timeout on {model}"; all_errors.append(f"{model}: {last_error}"); continue
             except RuntimeError: raise
@@ -172,6 +192,7 @@ Return ONLY this JSON, nothing else before or after:
         text = await self._call(
             messages=[{"role": "user", "content": user_msg}],
             max_tokens=1500,
+            validate=self._extract_json,   # bad JSON -> try the next model instead of failing
         )
         data = self._extract_json(text)
 
